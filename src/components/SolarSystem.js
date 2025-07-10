@@ -33,6 +33,11 @@ class SolarSystem extends Component {
     }
 
     componentDidMount() {
+        // Експортуємо функцію для CameraController
+        window.setAnimationRunning = (value) => {
+            this.setState({ isAnimationRunning: value });
+        };
+
         this.initializeThreeJS();
         this.createSolarSystem();
         this.animate();
@@ -55,6 +60,11 @@ class SolarSystem extends Component {
 
         this.cameraController = new CameraController(camera, renderer);
         this.planetUtils = new PlanetUtils(scene);
+
+        // Встановлюємо початковий вигляд після ініціалізації
+        setTimeout(() => {
+            this.switchView(this.state.is3DMode ? '3d' : '2d');
+        }, 100);
     }
 
     createSolarSystem() {

@@ -5,154 +5,101 @@ class CameraController {
         this.camera = camera;
         this.renderer = renderer;
         this.controls = null;
-        this.isMoving = false;
+        this.isMovingCamera = false;
         this.setupControls();
+
+        // Встановлюємо початкову ціль
+        this.controls.target.set(0, 0, 0);
+        this.camera.lookAt(this.controls.target);
     }
 
     setupControls() {
-        // Спроба використати OrbitControls з CDN або локальної установки
-        try {
-            // Перевіряємо чи є OrbitControls доступні
-            if (window.THREE && window.THREE.OrbitControls) {
-                this.controls = new window.THREE.OrbitControls(this.camera, this.renderer.domElement);
-            } else {
-                // Завантажуємо OrbitControls динамічно
-                this.loadOrbitControls();
-            }
-        } catch (error) {
-            console.warn('OrbitControls not available, using basic controls');
-            this.createBasicControls();
-        }
-    }
-
-    async loadOrbitControls() {
-        try {
-            // Додаємо OrbitControls через CDN
-            const script = document.createElement('script');
-            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/controls/OrbitControls.js';
-            script.onload = () => {
-                if (window.THREE && window.THREE.OrbitControls) {
-                    this.controls = new window.THREE.OrbitControls(this.camera, this.renderer.domElement);
-                    this.setupOrbitControls();
-                } else {
-                    this.createBasicControls();
-                }
-            };
-            script.onerror = () => {
-                console.warn('Failed to load OrbitControls from CDN');
-                this.createBasicControls();
-            };
-            document.head.appendChild(script);
-        } catch (error) {
-            this.createBasicControls();
-        }
-    }
-
-    setupOrbitControls() {
-        if (this.controls && this.controls.enableDamping !== undefined) {
-            // Налаштування для природного управління
-            this.controls.enableDamping = true;
-            this.controls.dampingFactor = 0.05;
-            this.controls.enableZoom = true;
-            this.controls.enableRotate = true;
-            this.controls.enablePan = true;
-
-            // Обмеження відстані
-            this.controls.maxDistance = 500;
-            this.controls.minDistance = 10;
-
-            // Налаштування швидкості
-            this.controls.rotateSpeed = 1.0;
-            this.controls.zoomSpeed = 1.2;
-            this.controls.panSpeed = 0.8;
-
-            // Інвертуємо управління для природного відчуття
-            this.controls.mouseButtons = {
-                LEFT: THREE.MOUSE.ROTATE,
-                MIDDLE: THREE.MOUSE.DOLLY,
-                RIGHT: THREE.MOUSE.PAN
-            };
-
-            // Налаштування для правильного напрямку обертання
-            this.controls.screenSpacePanning = false;
-            this.controls.minPolarAngle = 0; // radians
-            this.controls.maxPolarAngle = Math.PI; // radians
-        }
-    }
-
-    createBasicControls() {
-        // Створюємо власні базові контроли
+        // Створюємо власні контроли, що імітують поведінку OrbitControls
         this.controls = {
-            enabled: true,
+            enabled: false, // Початково вимкнені (для 2D режиму)
             enableZoom: true,
-            enableRotate: true,
-            enablePan: true,
+            zoomSpeed: 5,
+            minDistance: 5,
+            maxDistance: 500,
             target: new THREE.Vector3(0, 0, 0),
             update: () => {},
             dispose: () => {}
         };
 
-        // Додаємо базову функціональність миші
-        this.setupBasicMouseControls();
+        // Додаємо контроли миші
+        this.setupMouseControls();
     }
 
-    setupBasicMouseControls() {
-        let isMouseDown = false;
-        let mouseX = 0;
-        let mouseY = 0;
-        let phi = Math.PI / 2; // Початковий кут
-        let theta = 0;
-        const radius = this.camera.position.length();
+    setupMouseControls() {
+        let isDragging = false;
+        let previousMousePosition = { x: 0, y: 0 };
+
+        const spherical = new THREE.Spherical();
+        spherical.setFromVector3(this.camera.position.clone().sub(this.controls.target));
 
         const onMouseDown = (event) => {
             if (!this.controls.enabled) return;
-            isMouseDown = true;
-            mouseX = event.clientX;
-            mouseY = event.clientY;
+            isDragging = true;
+            previousMousePosition = { x: event.clientX, y: event.clientY };
         };
 
         const onMouseMove = (event) => {
-            if (!isMouseDown || !this.controls.enabled) return;
+            if (!isDragging || !this.controls.enabled) return;
 
-            const deltaX = event.clientX - mouseX;
-            const deltaY = event.clientY - mouseY;
+            const deltaMove = {
+                x: event.clientX - previousMousePosition.x,
+                y: event.clientY - previousMousePosition.y
+            };
 
-            // Виправляємо напрямки - тепер все працює природно
-            theta += deltaX * 0.01;  // Змінили з -= на +=
-            phi -= deltaY * 0.01;    // Змінили з += на -=
+            // Виправляємо напрямки для природного управління
+            const deltaRotationQuaternion = new THREE.Quaternion()
+                .setFromEuler(new THREE.Euler(
+                    -deltaMove.y * 0.01,  // Змінили знак для вертикального руху
+                    -deltaMove.x * 0.01,  // Змінили знак для горизонтального руху
+                    0,
+                    'XYZ'
+                ));
 
-            // Обмежуємо вертикальний кут
-            phi = Math.max(0.1, Math.min(Math.PI - 0.1, phi));
+            const currentPosition = this.camera.position.clone().sub(this.controls.target);
+            currentPosition.applyQuaternion(deltaRotationQuaternion);
 
-            const x = radius * Math.sin(phi) * Math.cos(theta);
-            const y = radius * Math.cos(phi);
-            const z = radius * Math.sin(phi) * Math.sin(theta);
+            // Обмежуємо відстань
+            const distance = currentPosition.length();
+            if (distance > this.controls.maxDistance) {
+                currentPosition.normalize().multiplyScalar(this.controls.maxDistance);
+            } else if (distance < this.controls.minDistance) {
+                currentPosition.normalize().multiplyScalar(this.controls.minDistance);
+            }
 
-            this.camera.position.set(x, y, z);
+            this.camera.position.copy(this.controls.target).add(currentPosition);
             this.camera.lookAt(this.controls.target);
 
-            mouseX = event.clientX;
-            mouseY = event.clientY;
+            previousMousePosition = { x: event.clientX, y: event.clientY };
         };
 
         const onMouseUp = () => {
-            isMouseDown = false;
+            isDragging = false;
         };
 
         const onWheel = (event) => {
             if (!this.controls.enabled || !this.controls.enableZoom) return;
 
-            // Виправляємо зум - тепер колесо вперед наближає
+            event.preventDefault();
+
+            // Виправляємо зум - колесо вперед наближає
             const scale = event.deltaY > 0 ? 1.1 : 0.9;
-            this.camera.position.multiplyScalar(scale);
+            const direction = this.camera.position.clone().sub(this.controls.target);
+            direction.multiplyScalar(scale);
 
             // Обмежуємо відстань
-            const distance = this.camera.position.length();
-            if (distance > 500) {
-                this.camera.position.normalize().multiplyScalar(500);
-            } else if (distance < 10) {
-                this.camera.position.normalize().multiplyScalar(10);
+            const distance = direction.length();
+            if (distance > this.controls.maxDistance) {
+                direction.normalize().multiplyScalar(this.controls.maxDistance);
+            } else if (distance < this.controls.minDistance) {
+                direction.normalize().multiplyScalar(this.controls.minDistance);
             }
+
+            this.camera.position.copy(this.controls.target).add(direction);
         };
 
         this.renderer.domElement.addEventListener('mousedown', onMouseDown);
@@ -160,25 +107,22 @@ class CameraController {
         this.renderer.domElement.addEventListener('mouseup', onMouseUp);
         this.renderer.domElement.addEventListener('wheel', onWheel);
 
-        // Зберігаємо посилання для cleanup
-        this.mouseControls = {
-            onMouseDown,
-            onMouseMove,
-            onMouseUp,
-            onWheel
-        };
+        // Зберігаємо для cleanup
+        this.mouseEvents = { onMouseDown, onMouseMove, onMouseUp, onWheel };
     }
 
+    // Точна копія switchView з оригіналу
     switchView(mode, cameraPositions) {
         if (!cameraPositions || !cameraPositions[mode]) {
             console.error(`Camera position for mode "${mode}" not found`);
             return;
         }
 
-        this.isMoving = true;
+        this.isMovingCamera = true;
         const targetPosition = new THREE.Vector3(...cameraPositions[mode].position);
         const targetRotation = new THREE.Euler(...cameraPositions[mode].rotation);
 
+        // Create current position point (точно як в оригіналі)
         const currentPosition = {
             position: this.camera.position.clone(),
             rotation: this.camera.rotation.clone()
@@ -192,7 +136,8 @@ class CameraController {
         }
 
         const animateCamera = () => {
-            if (!this.isMoving) {
+            if (!this.isMovingCamera) {
+                // Вмикаємо controls тільки для 3D режиму (як в оригіналі)
                 if (this.controls) {
                     this.controls.enabled = mode === '3d';
                 }
@@ -203,9 +148,12 @@ class CameraController {
             const elapsed = now - startTime;
             const progress = Math.min(elapsed / duration, 1);
 
-            const ease = progress * (2 - progress);
+            const ease = progress * (2 - progress); // Ease function for smoother transition
 
+            // Interpolate position (точно як в оригіналі)
             this.camera.position.lerpVectors(currentPosition.position, targetPosition, ease);
+
+            // Interpolate rotation (angles in Euler) (точно як в оригіналі)
             this.camera.rotation.x = THREE.MathUtils.lerp(currentPosition.rotation.x, targetRotation.x, ease);
             this.camera.rotation.y = THREE.MathUtils.lerp(currentPosition.rotation.y, targetRotation.y, ease);
             this.camera.rotation.z = THREE.MathUtils.lerp(currentPosition.rotation.z, targetRotation.z, ease);
@@ -213,7 +161,8 @@ class CameraController {
             if (progress < 1) {
                 requestAnimationFrame(animateCamera);
             } else {
-                this.isMoving = false;
+                this.isMovingCamera = false;
+                // Вмикаємо controls тільки для 3D режиму (як в оригіналі)
                 if (this.controls) {
                     this.controls.enabled = mode === '3d';
                     if (this.controls.update) this.controls.update();
@@ -224,20 +173,26 @@ class CameraController {
         animateCamera();
     }
 
-    moveToObject(object) {
+    // Точна копія moveToObject з оригіналу
+    moveToObject(object, stopAnimation = true) {
         if (!object) return;
 
-        if (this.isMoving) {
-            this.isMoving = false;
+        // Зупиняємо анімацію як в оригіналі
+        if (stopAnimation && window.setAnimationRunning) {
+            window.setAnimationRunning(false);
+        }
+
+        if (this.isMovingCamera) {
+            this.isMovingCamera = false;
             return;
         }
 
-        this.isMoving = true;
+        this.isMovingCamera = true;
         const objectRadius = object.geometry.parameters.radius;
-        const distance = objectRadius * 8;
+        const distance = objectRadius * 5; // Точно як в оригіналі
         const offset = new THREE.Vector3(distance, distance * 0.5, distance);
 
-        const duration = 1500;
+        const duration = 1000; // Точно як в оригіналі
         const startCameraPos = this.camera.position.clone();
         const startTime = Date.now();
 
@@ -246,8 +201,8 @@ class CameraController {
         }
 
         const animate = () => {
-            if (!this.isMoving) {
-                this.isMoving = false;
+            if (!this.isMovingCamera) {
+                this.isMovingCamera = false;
                 if (this.controls) {
                     this.controls.enabled = true;
                 }
@@ -258,7 +213,7 @@ class CameraController {
             const elapsed = now - startTime;
             const progress = Math.min(elapsed / duration, 1);
 
-            const ease = progress * (2 - progress);
+            const ease = progress * (2 - progress); // Точно як в оригіналі
 
             const worldPosition = new THREE.Vector3();
             object.getWorldPosition(worldPosition);
@@ -273,7 +228,7 @@ class CameraController {
             if (progress < 1) {
                 requestAnimationFrame(animate);
             } else {
-                this.isMoving = false;
+                this.isMovingCamera = false;
                 if (this.controls) {
                     this.controls.enabled = true;
                     if (this.controls.target) {
@@ -298,13 +253,13 @@ class CameraController {
             this.controls.dispose();
         }
 
-        // Очищуємо базові контроли миші якщо вони є
-        if (this.mouseControls) {
+        // Очищуємо event listeners
+        if (this.mouseEvents) {
             const element = this.renderer.domElement;
-            element.removeEventListener('mousedown', this.mouseControls.onMouseDown);
-            element.removeEventListener('mousemove', this.mouseControls.onMouseMove);
-            element.removeEventListener('mouseup', this.mouseControls.onMouseUp);
-            element.removeEventListener('wheel', this.mouseControls.onWheel);
+            element.removeEventListener('mousedown', this.mouseEvents.onMouseDown);
+            element.removeEventListener('mousemove', this.mouseEvents.onMouseMove);
+            element.removeEventListener('mouseup', this.mouseEvents.onMouseUp);
+            element.removeEventListener('wheel', this.mouseEvents.onWheel);
         }
     }
 }

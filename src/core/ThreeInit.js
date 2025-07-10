@@ -18,10 +18,10 @@ class ThreeInit {
         this.scene = new THREE.Scene();
         this.scene.background = new THREE.Color(0x000000);
 
-        // Camera
+        // Camera - початкова позиція для 2D виду
         this.camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
-        this.camera.position.set(0, 300, 0);
-        this.camera.rotation.set(-Math.PI / 2, 0, 0);
+        this.camera.position.set(0, 300, 0); // 2D вигляд зверху
+        this.camera.rotation.set(-Math.PI / 2, 0, 0); // Дивимося вниз
 
         // Renderer
         this.renderer = new THREE.WebGLRenderer({ antialias: true });
