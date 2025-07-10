@@ -8,7 +8,8 @@
       "bumpMap": "textures/0sun/sunmap.jpg",
       "bumpScale": 300,
       "position": [0, 0, 0],
-      "isSun": true
+      "isSun": true,
+      "orbitSpeed": 0.0004
     },
     {
       "name": "Mercury",
@@ -17,7 +18,8 @@
       "texture": "textures/1mercury/mercurymap.jpg",
       "bumpMap": "textures/1mercury/mercurybump.jpg",
       "bumpScale": 100,
-      "position": [17, 0, 17]
+      "position": [17, 0, 17],
+      "orbitSpeed": 0.009
     },
     {
       "name": "Venus",
@@ -26,7 +28,8 @@
       "texture": "textures/2venus/venusmap.jpg",
       "bumpMap": "textures/2venus/venusbump.jpg",
       "bumpScale": 100,
-      "position": [22, 0, 22]
+      "position": [22, 0, 22],
+      "orbitSpeed": 0.006
     },
     {
       "name": "Earth",
@@ -35,7 +38,8 @@
       "texture": "textures/3earth/earthmap1k.jpg",
       "bumpMap": "textures/3earth/earthbump.jpg",
       "bumpScale": 300,
-      "position": [27, 0, 27]
+      "position": [27, 0, 27],
+      "orbitSpeed": 0.004
     },
     {
       "name": "Mars",
@@ -44,7 +48,8 @@
       "texture": "textures/4mars/marsmap1k.jpg",
       "bumpMap": "textures/4mars/marsbump1k.jpg",
       "bumpScale": 300,
-      "position": [35, 0, 35]
+      "position": [35, 0, 35],
+      "orbitSpeed": 0.002
     },
     {
       "name": "Jupiter",
@@ -53,7 +58,8 @@
       "texture": "textures/5jupiter/jupitermap.jpg",
       "bumpMap": "textures/5jupiter/jupitermap.jpg",
       "bumpScale": 10,
-      "position": [58, 0, 58]
+      "position": [58, 0, 58],
+      "orbitSpeed": 0.0010
     },
     {
       "name": "Saturn",
@@ -63,7 +69,12 @@
       "bumpMap": "textures/6saturn/saturnmap.jpg",
       "bumpScale": 10,
       "position": [80, 0, 80],
-      "ring": { "innerRadius": 10, "outerRadius": 20, "texture": "textures/6saturn/saturnringcolor.jpg" }
+      "orbitSpeed": 0.0008,
+      "ring": {
+        "innerRadius": 10,
+        "outerRadius": 20,
+        "texture": "textures/6saturn/saturnringcolor.jpg"
+      }
     },
     {
       "name": "Uranus",
@@ -73,7 +84,12 @@
       "bumpMap": "textures/7uranus/uranusmap.jpg",
       "bumpScale": 10,
       "position": [100, 0, 100],
-      "ring": { "innerRadius": 13, "outerRadius": 14, "texture": "textures/7uranus/uranusringcolor.jpg" }
+      "orbitSpeed": 0.0006,
+      "ring": {
+        "innerRadius": 13,
+        "outerRadius": 14,
+        "texture": "textures/7uranus/uranusringcolor.jpg"
+      }
     },
     {
       "name": "Neptune",
@@ -82,7 +98,24 @@
       "texture": "textures/8neptune/neptunemap.jpg",
       "bumpMap": "textures/8neptune/neptunemap.jpg",
       "bumpScale": 10,
-      "position": [115, 0, 115]
+      "position": [115, 0, 115],
+      "orbitSpeed": 0.0004
     }
-  ]
+  ],
+  "asteroidBelt": {
+    "innerRadius": 55,
+    "outerRadius": 63,
+    "numAsteroids": 500,
+    "orbitSpeed": 0.0005
+  },
+  "cameraPositions": {
+    "2d": {
+      "position": [0, 300, 0],
+      "rotation": [-1.5707963267948966, 0, 0]
+    },
+    "3d": {
+      "position": [150, 150, 0],
+      "rotation": [-1.5707963267948966, 0.7853981633974483, 1.5707963267948966]
+    }
+  }
 }

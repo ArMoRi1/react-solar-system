@@ -1,14 +1,13 @@
-import React, { Component } from 'react';
+import React from 'react';
 import SolarSystem from './components/SolarSystem';
+import './styles/App.css';
 
-class App extends Component {
-  render() {
+function App() {
     return (
         <div className="App">
-          <SolarSystem />
+            <SolarSystem />
         </div>
     );
-  }
 }
 
 export default App;
