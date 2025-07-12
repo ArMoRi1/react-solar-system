@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import ThreeInit from '../core/ThreeInit';
 import CameraController from '../core/CameraController';
 import PlanetUtils from './PlanetUtils';
-import InfoPanel from './InfoPanel';
+import DetailedInfoPanel from './InfoPanel';
 import solarSystemData from '../data/solarSystem.json';
 
 class SolarSystem extends Component {
@@ -572,10 +572,9 @@ class SolarSystem extends Component {
                 />
 
                 {/* Planet Info Panel */}
-                <InfoPanel
+                <DetailedInfoPanel
                     showInfo={showInfo}
                     selectedPlanet={selectedPlanet}
-                    planetInfo={planetInfo}
                     infoPosition={infoPosition}
                 />
 
