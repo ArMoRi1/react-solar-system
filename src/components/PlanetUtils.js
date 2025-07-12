@@ -9,7 +9,8 @@ class PlanetUtils {
         this.asteroidBelt = null;
         this.originalMaterials = new Map();
         this.focusedPlanet = null;
-        this.invisibleClickPlane = null; // Невидима площина для детекції кліків
+        this.invisibleClickPlane = null;
+        this.orbitsVisible = true; // Додаємо стан для орбіт
     }
 
     createAsteroid(position, radius) {
@@ -89,6 +90,17 @@ class PlanetUtils {
         return allObjects;
     }
 
+    // Нова функція для перемикання видимості орбіт
+    toggleOrbits(visible) {
+        this.orbitsVisible = visible;
+        this.planetInstances.forEach(planetInstance => {
+            const orbitRing = planetInstance.getOrbitRing();
+            if (orbitRing) {
+                orbitRing.visible = visible;
+            }
+        });
+    }
+
     // Функція для повної ізоляції планети
     focusOnPlanet(selectedPlanetName) {
         this.focusedPlanet = selectedPlanetName;
@@ -96,10 +108,16 @@ class PlanetUtils {
         this.planetInstances.forEach(planetInstance => {
             const planetMesh = planetInstance.getPlanetMesh();
             const planetName = planetInstance.getName();
+            const orbitRing = planetInstance.getOrbitRing();
 
             if (planetName !== selectedPlanetName) {
                 // Повністю ховаємо інші планети
                 planetMesh.visible = false;
+
+                // Ховаємо орбіти інших планет
+                if (orbitRing) {
+                    orbitRing.visible = false;
+                }
 
                 // Також ховаємо все орбітальне оточення інших планет
                 if (planetInstance.planetOrbit) {
@@ -113,15 +131,20 @@ class PlanetUtils {
                 // Обрана планета повністю видима
                 planetMesh.visible = true;
 
+                // Показуємо орбіту обраної планети тільки якщо орбіти включені
+                if (orbitRing) {
+                    orbitRing.visible = this.orbitsVisible;
+                }
+
                 // Її кільця теж видимі (для Сатурна/Урана)
                 if (planetInstance.planetOrbit) {
                     planetInstance.planetOrbit.children.forEach(child => {
                         if (child !== planetMesh && child.material) {
-                            // Показуємо кільця планети, але ховаємо орбітальні лінії
+                            // Показуємо кільця планети
                             if (child.geometry && child.geometry.type === 'RingGeometry') {
                                 if (child.material.map) { // Має текстуру = кільце планети
                                     child.visible = true;
-                                } else { // Немає текстури = орбітальна лінія
+                                } else { // Немає текстури = орбітальна лінія (не використовується більше)
                                     child.visible = false;
                                 }
                             } else {
@@ -150,9 +173,15 @@ class PlanetUtils {
 
         this.planetInstances.forEach(planetInstance => {
             const planetMesh = planetInstance.getPlanetMesh();
+            const orbitRing = planetInstance.getOrbitRing();
 
             // Відновлюємо видимість всіх планет
             planetMesh.visible = true;
+
+            // Відновлюємо видимість орбіт згідно з поточним станом
+            if (orbitRing) {
+                orbitRing.visible = this.orbitsVisible;
+            }
 
             // Відновлюємо видимість орбітальних кілець та інших об'єктів
             if (planetInstance.planetOrbit) {
@@ -180,6 +209,10 @@ class PlanetUtils {
 
     getFocusedPlanet() {
         return this.focusedPlanet;
+    }
+
+    getOrbitsVisible() {
+        return this.orbitsVisible;
     }
 
     dispose() {

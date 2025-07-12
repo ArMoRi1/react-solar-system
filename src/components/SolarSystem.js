@@ -4,6 +4,7 @@ import CameraController from '../core/CameraController';
 import PlanetUtils from './PlanetUtils';
 import DetailedInfoPanel from './InfoPanel';
 import solarSystemData from '../data/solarSystem.json';
+import * as THREE from 'three';
 
 class SolarSystem extends Component {
     constructor(props) {
@@ -17,7 +18,9 @@ class SolarSystem extends Component {
             infoPosition: { x: 0, y: 0 },
             tooltipVisible: false,
             tooltipText: '',
-            tooltipPosition: { x: 0, y: 0 }
+            tooltipPosition: { x: 0, y: 0 },
+            showAxes: false, // Додаємо стан для осей
+            showOrbits: true // Додаємо стан для орбіт
         };
 
         this.mountRef = React.createRef();
@@ -30,6 +33,7 @@ class SolarSystem extends Component {
         this.renderer = null;
         this.raycaster = null;
         this.mouse = null;
+        this.axesHelper = null; // Додаємо референс для осей
 
         // Додаємо змінні для відстеження перетягування
         this.isDragging = false;
@@ -66,10 +70,20 @@ class SolarSystem extends Component {
         this.cameraController = new CameraController(camera, renderer);
         this.planetUtils = new PlanetUtils(scene);
 
+        // Створюємо координатні осі
+        this.createAxes();
+
         // Встановлюємо початковий вигляд після ініціалізації
         setTimeout(() => {
             this.switchView(this.state.is3DMode ? '3d' : '2d');
         }, 100);
+    }
+
+    createAxes() {
+        // Створюємо координатні осі XYZ
+        this.axesHelper = new THREE.AxesHelper(100); // Розмір осей - 100 одиниць
+        this.axesHelper.visible = this.state.showAxes;
+        this.scene.add(this.axesHelper);
     }
 
     createSolarSystem() {
@@ -83,6 +97,9 @@ class SolarSystem extends Component {
             asteroidBeltData.outerRadius,
             asteroidBeltData.numAsteroids
         );
+
+        // Встановлюємо початковий стан орбіт
+        this.planetUtils.toggleOrbits(this.state.showOrbits);
     }
 
     switchView(mode) {
@@ -290,6 +307,26 @@ class SolarSystem extends Component {
         this.setState({ animationSpeed: parseFloat(event.target.value) });
     };
 
+    // Нова функція для перемикання орбіт
+    handleOrbitsToggle = () => {
+        const showOrbits = !this.state.showOrbits;
+        this.setState({ showOrbits });
+
+        if (this.planetUtils) {
+            this.planetUtils.toggleOrbits(showOrbits);
+        }
+    };
+
+    // Нова функція для перемикання осей
+    handleAxesToggle = () => {
+        const showAxes = !this.state.showAxes;
+        this.setState({ showAxes });
+
+        if (this.axesHelper) {
+            this.axesHelper.visible = showAxes;
+        }
+    };
+
     handleResetCamera = () => {
         // Переключаємо в 2D режим
         this.setState({
@@ -363,7 +400,9 @@ class SolarSystem extends Component {
             infoPosition,
             tooltipVisible,
             tooltipText,
-            tooltipPosition
+            tooltipPosition,
+            showAxes,
+            showOrbits
         } = this.state;
 
         const planetInfo = this.getPlanetInfo();
@@ -626,6 +665,148 @@ class SolarSystem extends Component {
                                     pointerEvents: 'none'
                                 }}>
                                     Play
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Axes Toggle - Нова кнопка */}
+                        <div>
+                            <label style={{ display: 'block', marginBottom: '8px', fontSize: '12px' }}>
+                                Coordinate Axes
+                            </label>
+                            <div
+                                style={{
+                                    position: 'relative',
+                                    width: '100%',
+                                    height: '35px',
+                                    background: showAxes ? '#9C27B0' : '#333',
+                                    borderRadius: '17.5px',
+                                    cursor: 'pointer',
+                                    transition: 'background-color 0.3s ease',
+                                    border: '1px solid rgba(255,255,255,0.2)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    padding: '3px'
+                                }}
+                                onClick={this.handleAxesToggle}
+                            >
+                                <div
+                                    style={{
+                                        position: 'absolute',
+                                        top: '3px',
+                                        left: showAxes ? 'calc(50% + 1px)' : '3px',
+                                        width: 'calc(50% - 4px)',
+                                        height: '29px',
+                                        background: '#fff',
+                                        borderRadius: '14.5px',
+                                        transition: 'left 0.3s ease',
+                                        boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        fontSize: '12px',
+                                        fontWeight: 'bold',
+                                        color: '#333'
+                                    }}
+                                >
+                                    {showAxes ? 'XYZ' : '○'}
+                                </div>
+
+                                {/* Labels */}
+                                <div style={{
+                                    position: 'absolute',
+                                    left: '0',
+                                    width: '50%',
+                                    textAlign: 'center',
+                                    fontSize: '11px',
+                                    color: !showAxes ? 'transparent' : 'rgba(255,255,255,0.8)',
+                                    fontWeight: '500',
+                                    pointerEvents: 'none'
+                                }}>
+                                    Hide
+                                </div>
+                                <div style={{
+                                    position: 'absolute',
+                                    right: '0',
+                                    width: '50%',
+                                    textAlign: 'center',
+                                    fontSize: '11px',
+                                    color: showAxes ? 'transparent' : 'rgba(255,255,255,0.8)',
+                                    fontWeight: '500',
+                                    pointerEvents: 'none'
+                                }}>
+                                    Show
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Orbits Toggle - Нова кнопка для орбіт */}
+                        <div>
+                            <label style={{ display: 'block', marginBottom: '8px', fontSize: '12px' }}>
+                                Planet Orbits
+                            </label>
+                            <div
+                                style={{
+                                    position: 'relative',
+                                    width: '100%',
+                                    height: '35px',
+                                    background: showOrbits ? '#00BCD4' : '#333',
+                                    borderRadius: '17.5px',
+                                    cursor: 'pointer',
+                                    transition: 'background-color 0.3s ease',
+                                    border: '1px solid rgba(255,255,255,0.2)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    padding: '3px'
+                                }}
+                                onClick={this.handleOrbitsToggle}
+                            >
+                                <div
+                                    style={{
+                                        position: 'absolute',
+                                        top: '3px',
+                                        left: showOrbits ? 'calc(50% + 1px)' : '3px',
+                                        width: 'calc(50% - 4px)',
+                                        height: '29px',
+                                        background: '#fff',
+                                        borderRadius: '14.5px',
+                                        transition: 'left 0.3s ease',
+                                        boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        fontSize: '12px',
+                                        fontWeight: 'bold',
+                                        color: '#333'
+                                    }}
+                                >
+                                    {showOrbits ? '◯' : '○'}
+                                </div>
+
+                                {/* Labels */}
+                                <div style={{
+                                    position: 'absolute',
+                                    left: '0',
+                                    width: '50%',
+                                    textAlign: 'center',
+                                    fontSize: '11px',
+                                    color: !showOrbits ? 'transparent' : 'rgba(255,255,255,0.8)',
+                                    fontWeight: '500',
+                                    pointerEvents: 'none'
+                                }}>
+                                    Hide
+                                </div>
+                                <div style={{
+                                    position: 'absolute',
+                                    right: '0',
+                                    width: '50%',
+                                    textAlign: 'center',
+                                    fontSize: '11px',
+                                    color: showOrbits ? 'transparent' : 'rgba(255,255,255,0.8)',
+                                    fontWeight: '500',
+                                    pointerEvents: 'none'
+                                }}>
+                                    Show
                                 </div>
                             </div>
                         </div>

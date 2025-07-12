@@ -7,6 +7,7 @@ class Planet {
         this.planet = null;
         this.planetOrbit = null;
         this.ring = null;
+        this.orbitRing = null; // Додаємо окрему референс для орбітального кільця
 
         this.createPlanet();
     }
@@ -32,8 +33,8 @@ class Planet {
         this.planetOrbit = new THREE.Object3D();
         this.planetOrbit.add(this.planet);
 
-        // Create orbit ring
-        this.createOrbitRing(position[0]);
+        // Create orbit ring - виправлено для центрування навколо Сонця
+        this.createOrbitRing(position);
 
         // Add ring if exists
         if (ring) {
@@ -43,19 +44,26 @@ class Planet {
         this.scene.add(this.planetOrbit);
     }
 
-    createOrbitRing(orbitRadius) {
-        if (orbitRadius === 0) return; // Don't create orbit for Sun
+    createOrbitRing(position) {
+        // Не створюємо орбіту для Сонця
+        if (position[0] === 0 && position[1] === 0 && position[2] === 0) return;
 
-        const orbitGeometry = new THREE.RingGeometry(orbitRadius - 0.5, orbitRadius + 0.5, 64);
+        // Обчислюємо радіус орбіти відносно центру (0,0,0)
+        const orbitRadius = Math.sqrt(position[0] * position[0] + position[2] * position[2]);
+
+        const orbitGeometry = new THREE.RingGeometry(orbitRadius - 0.2, orbitRadius + 0.2, 128);
         const orbitMaterial = new THREE.MeshBasicMaterial({
             color: 0xffffff,
             side: THREE.DoubleSide,
-            opacity: 0.05,
+            opacity: 0.08,
             transparent: true
         });
-        const orbit = new THREE.Mesh(orbitGeometry, orbitMaterial);
-        orbit.rotation.x = Math.PI / 2;
-        this.planetOrbit.add(orbit);
+        this.orbitRing = new THREE.Mesh(orbitGeometry, orbitMaterial);
+        this.orbitRing.rotation.x = Math.PI / 2; // Горизонтально
+        this.orbitRing.position.set(0, 0, 0); // Центруємо навколо Сонця
+
+        // Додаємо орбіту безпосередньо до сцени, а не до planetOrbit
+        this.scene.add(this.orbitRing);
     }
 
     createPlanetRing(ringData, position) {
@@ -84,6 +92,10 @@ class Planet {
         return this.planet;
     }
 
+    getOrbitRing() {
+        return this.orbitRing;
+    }
+
     getName() {
         return this.planetData.name;
     }
@@ -91,6 +103,9 @@ class Planet {
     dispose() {
         if (this.planetOrbit) {
             this.scene.remove(this.planetOrbit);
+        }
+        if (this.orbitRing) {
+            this.scene.remove(this.orbitRing);
         }
     }
 }
