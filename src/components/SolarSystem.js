@@ -20,7 +20,8 @@ class SolarSystem extends Component {
             tooltipText: '',
             tooltipPosition: { x: 0, y: 0 },
             showAxes: false, // Додаємо стан для осей
-            showOrbits: true // Додаємо стан для орбіт
+            showOrbits: true, // Додаємо стан для орбіт
+            infoPanelOpen: false // Додаємо стан для керування панеллю
         };
 
         this.mountRef = React.createRef();
@@ -158,7 +159,11 @@ class SolarSystem extends Component {
             // Перевіряємо, чи це клік по невидимій площині (означає клік у порожньому місці)
             if (selectedObject.userData.isClickPlane) {
                 // Клік у порожнє місце - повертаємося до загального виду
-                this.setState({ showInfo: false, selectedPlanet: null });
+                this.setState({
+                    showInfo: false,
+                    selectedPlanet: null,
+                    infoPanelOpen: false
+                });
                 this.planetUtils.showAllPlanets();
                 this.handleResetCamera();
                 return;
@@ -173,7 +178,8 @@ class SolarSystem extends Component {
                     // Якщо це та сама планета - повертаємося до загального виду
                     this.setState({
                         showInfo: false,
-                        selectedPlanet: null
+                        selectedPlanet: null,
+                        infoPanelOpen: false
                     });
                     this.planetUtils.showAllPlanets();
                     this.handleResetCamera(); // Повертаємо камеру до початкової позиції
@@ -182,6 +188,7 @@ class SolarSystem extends Component {
                     this.setState({
                         showInfo: true,
                         selectedPlanet: planetName,
+                        infoPanelOpen: true, // Автоматично відкриваємо панель
                         infoPosition: {
                             x: event.clientX + 20,
                             y: event.clientY + 20
@@ -193,7 +200,11 @@ class SolarSystem extends Component {
             }
         } else {
             // Клік не по жодному об'єкту - повертаємося до загального виду
-            this.setState({ showInfo: false, selectedPlanet: null });
+            this.setState({
+                showInfo: false,
+                selectedPlanet: null,
+                infoPanelOpen: false
+            });
             this.planetUtils.showAllPlanets();
             this.handleResetCamera();
         }
@@ -307,6 +318,13 @@ class SolarSystem extends Component {
         this.setState({ animationSpeed: parseFloat(event.target.value) });
     };
 
+    // Функція для перемикання інформаційної панелі
+    handleInfoPanelToggle = () => {
+        this.setState(prevState => ({
+            infoPanelOpen: !prevState.infoPanelOpen
+        }));
+    };
+
     // Нова функція для перемикання орбіт
     handleOrbitsToggle = () => {
         const showOrbits = !this.state.showOrbits;
@@ -332,7 +350,8 @@ class SolarSystem extends Component {
         this.setState({
             is3DMode: false,
             showInfo: false,
-            selectedPlanet: null
+            selectedPlanet: null,
+            infoPanelOpen: false
         });
 
         // Показуємо всі об'єкти назад
@@ -349,7 +368,8 @@ class SolarSystem extends Component {
             this.setState({
                 showInfo: false,
                 selectedPlanet: null,
-                is3DMode: false
+                is3DMode: false,
+                infoPanelOpen: false
             });
             this.planetUtils.showAllPlanets();
             this.handleResetCamera();
@@ -360,6 +380,7 @@ class SolarSystem extends Component {
         this.setState({
             showInfo: true,
             selectedPlanet: planetName,
+            infoPanelOpen: true, // Автоматично відкриваємо панель
             infoPosition: { x: 20, y: 100 },
             is3DMode: true
         });
@@ -402,7 +423,8 @@ class SolarSystem extends Component {
             tooltipText,
             tooltipPosition,
             showAxes,
-            showOrbits
+            showOrbits,
+            infoPanelOpen
         } = this.state;
 
         const planetInfo = this.getPlanetInfo();
@@ -486,18 +508,59 @@ class SolarSystem extends Component {
                 <div
                     ref={this.mountRef}
                     style={{
-                        width: showInfo ? 'calc(100vw - 750px)' : 'calc(100vw - 450px)',
+                        width: (showInfo && infoPanelOpen) ? 'calc(100vw - 750px)' : 'calc(100vw - 450px)',
                         height: '100%',
                         cursor: this.isDragging ? 'grabbing' : 'grab',
                         marginLeft: '250px',
-                        marginRight: showInfo ? '500px' : '200px',
+                        marginRight: '200px', // Фіксований правий відступ
                         transition: 'all 0.3s ease'
                     }}
                 />
 
+                {/* Info Panel Toggle Button */}
+                {showInfo && (
+                    <div style={{
+                        position: 'fixed',
+                        right: infoPanelOpen ? '700px' : '200px', // Позиція кнопки
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        zIndex: 1002,
+                        transition: 'right 0.3s ease'
+                    }}>
+                        <button
+                            onClick={this.handleInfoPanelToggle}
+                            style={{
+                                background: 'rgba(0,0,0,0.8)',
+                                border: '1px solid rgba(255,255,255,0.3)',
+                                color: 'white',
+                                width: '40px',
+                                height: '80px',
+                                cursor: 'pointer',
+                                borderRadius: infoPanelOpen ? '8px 0 0 8px' : '8px 0 0 8px',
+                                fontSize: '18px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                transition: 'all 0.3s ease',
+                                boxShadow: '-2px 0 8px rgba(0,0,0,0.3)'
+                            }}
+                            onMouseEnter={(e) => {
+                                e.target.style.background = 'rgba(0,0,0,0.9)';
+                                e.target.style.borderColor = 'rgba(255,255,255,0.5)';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.target.style.background = 'rgba(0,0,0,0.8)';
+                                e.target.style.borderColor = 'rgba(255,255,255,0.3)';
+                            }}
+                        >
+                            {infoPanelOpen ? '›' : '‹'}
+                        </button>
+                    </div>
+                )}
+
                 {/* Planet Info Panel */}
                 <DetailedInfoPanel
-                    showInfo={showInfo}
+                    showInfo={showInfo && infoPanelOpen}
                     selectedPlanet={selectedPlanet}
                     infoPosition={infoPosition}
                 />
