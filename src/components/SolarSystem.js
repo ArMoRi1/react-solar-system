@@ -90,7 +90,8 @@ class SolarSystem extends Component {
         const planet = this.planetUtils.getPlanetByName(planetName);
         if (planet) {
             this.setState({ isAnimationRunning: false });
-            this.cameraController.moveToObject(planet);
+            // Передаємо стан інформаційної панелі в камеру
+            this.cameraController.moveToObject(planet, true, this.state.showInfo);
         }
     }
 
@@ -130,6 +131,8 @@ class SolarSystem extends Component {
             }
         } else {
             this.setState({ showInfo: false, selectedPlanet: null });
+            // Показуємо всі об'єкти назад коли кліку не по планеті
+            this.planetUtils.showAllPlanets();
         }
     };
 
@@ -219,17 +222,38 @@ class SolarSystem extends Component {
             selectedPlanet: null
         });
 
+        // Показуємо всі об'єкти назад
+        this.planetUtils.showAllPlanets();
+
         // Повертаємо до початкової позиції через switchView
         this.switchView('2d');
     };
 
     handlePlanetClick = (planetName) => {
-        this.moveToObject(planetName);
+        // Спочатку оновлюємо стан
         this.setState({
             showInfo: true,
             selectedPlanet: planetName,
-            infoPosition: { x: 20, y: 100 }
+            infoPosition: { x: 20, y: 100 },
+            is3DMode: true // Переключаємо в 3D для кращого обертання
         });
+
+        // Ховаємо всі інші об'єкти
+        this.planetUtils.focusOnPlanet(planetName);
+
+        // Потім рухаємо камеру
+        const planet = this.planetUtils.getPlanetByName(planetName);
+        if (planet) {
+            this.setState({ isAnimationRunning: false });
+            this.cameraController.moveToObject(planet, true, true);
+
+            // Вмикаємо 3D контроли після руху камери
+            setTimeout(() => {
+                if (this.cameraController.controls) {
+                    this.cameraController.controls.enabled = true;
+                }
+            }, 1600); // Після завершення анімації камери
+        }
     };
 
     getPlanetInfo() {
