@@ -173,7 +173,7 @@ class CameraController {
         animateCamera();
     }
 
-    // Точна копія moveToObject з оригіналу
+    // Оновлений moveToObject для центрування об'єкта в лівій частині
     moveToObject(object, stopAnimation = true) {
         if (!object) return;
 
@@ -189,10 +189,12 @@ class CameraController {
 
         this.isMovingCamera = true;
         const objectRadius = object.geometry.parameters.radius;
-        const distance = objectRadius * 5; // Точно як в оригіналі
-        const offset = new THREE.Vector3(distance, distance * 0.5, distance);
 
-        const duration = 1000; // Точно як в оригіналі
+        // Розраховуємо позицію для центру лівої частини екрана
+        const distance = objectRadius * 6;
+        const offset = new THREE.Vector3(distance, distance * 0.6, distance);
+
+        const duration = 1500;
         const startCameraPos = this.camera.position.clone();
         const startTime = Date.now();
 
@@ -213,7 +215,7 @@ class CameraController {
             const elapsed = now - startTime;
             const progress = Math.min(elapsed / duration, 1);
 
-            const ease = progress * (2 - progress); // Точно як в оригіналі
+            const ease = progress * (2 - progress);
 
             const worldPosition = new THREE.Vector3();
             object.getWorldPosition(worldPosition);
@@ -223,7 +225,7 @@ class CameraController {
                 .add(offset);
 
             this.camera.position.lerpVectors(startCameraPos, currentTargetPosition, ease);
-            this.camera.lookAt(worldPosition);
+            this.camera.lookAt(worldPosition); // Дивимося прямо на об'єкт
 
             if (progress < 1) {
                 requestAnimationFrame(animate);

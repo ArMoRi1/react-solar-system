@@ -333,7 +333,7 @@ class SolarSystem extends Component {
                 {/* Right Control Panel */}
                 <div style={{
                     position: 'fixed',
-                    right: 0,
+                    right: 0, // Завжди справа
                     top: 0,
                     width: '200px',
                     height: '100vh',
@@ -558,16 +558,18 @@ class SolarSystem extends Component {
                         </div>
                     </div>
                 </div>
+                )}
 
                 {/* 3D Scene */}
                 <div
                     ref={this.mountRef}
                     style={{
-                        width: '100%',
+                        width: showInfo ? 'calc((100vw - 450px) / 2)' : 'calc(100vw - 450px)', // Половина центральної частини коли showInfo
                         height: '100%',
                         cursor: 'grab',
                         marginLeft: '250px',
-                        marginRight: '200px'
+                        marginRight: '0',
+                        transition: 'all 0.3s ease'
                     }}
                 />
 
