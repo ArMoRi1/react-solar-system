@@ -200,4 +200,5 @@ class NasaService {
     }
 }
 
-export default new NasaService();
+const nasaService = new NasaService();
+export default nasaService;

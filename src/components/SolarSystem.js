@@ -427,8 +427,6 @@ class SolarSystem extends Component {
             infoPanelOpen
         } = this.state;
 
-        const planetInfo = this.getPlanetInfo();
-
         return (
             <div style={{ position: 'relative', width: '100vw', height: '100vh', background: '#000', display: 'flex' }}>
                 {/* Left Planet Navigation Panel */}
