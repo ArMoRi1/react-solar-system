@@ -244,91 +244,181 @@ class SolarSystem extends Component {
         const planetInfo = this.getPlanetInfo();
 
         return (
-            <div style={{ position: 'relative', width: '100vw', height: '100vh', background: '#000' }}>
+            <div style={{ position: 'relative', width: '100vw', height: '100vh', background: '#000', display: 'flex' }}>
+                {/* Left Planet Navigation Panel */}
+                <div style={{
+                    position: 'fixed',
+                    left: 0,
+                    top: 0,
+                    width: '250px',
+                    height: '100vh',
+                    background: 'rgba(0,0,0,0.9)',
+                    color: 'white',
+                    padding: '20px',
+                    zIndex: 1000,
+                    overflowY: 'auto',
+                    borderRight: '1px solid rgba(255,255,255,0.2)'
+                }}>
+                    <h2 style={{
+                        margin: '0 0 20px 0',
+                        fontSize: '18px',
+                        textAlign: 'center',
+                        borderBottom: '1px solid rgba(255,255,255,0.3)',
+                        paddingBottom: '10px'
+                    }}>
+                        🌌 Solar System
+                    </h2>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                        {solarSystemData.planets.map(planet => (
+                            <button
+                                key={planet.name}
+                                onClick={() => this.handlePlanetClick(planet.name)}
+                                style={{
+                                    background: selectedPlanet === planet.name
+                                        ? 'rgba(255,255,255,0.2)'
+                                        : 'rgba(255,255,255,0.1)',
+                                    border: '1px solid rgba(255,255,255,0.3)',
+                                    color: 'white',
+                                    padding: '12px 15px',
+                                    cursor: 'pointer',
+                                    borderRadius: '8px',
+                                    fontSize: '14px',
+                                    textAlign: 'left',
+                                    transition: 'all 0.3s ease',
+                                    width: '100%'
+                                }}
+                                onMouseEnter={(e) => {
+                                    e.target.style.background = 'rgba(255,255,255,0.25)';
+                                    e.target.style.transform = 'translateX(5px)';
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.target.style.background = selectedPlanet === planet.name
+                                        ? 'rgba(255,255,255,0.2)'
+                                        : 'rgba(255,255,255,0.1)';
+                                    e.target.style.transform = 'translateX(0)';
+                                }}
+                            >
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                    <span style={{ fontSize: '16px' }}>
+                                        {planet.name === 'Sun' ? '☀️' :
+                                            planet.name === 'Mercury' ? '☿️' :
+                                                planet.name === 'Venus' ? '♀️' :
+                                                    planet.name === 'Earth' ? '🌍' :
+                                                        planet.name === 'Mars' ? '♂️' :
+                                                            planet.name === 'Jupiter' ? '♃' :
+                                                                planet.name === 'Saturn' ? '♄' :
+                                                                    planet.name === 'Uranus' ? '♅' :
+                                                                        planet.name === 'Neptune' ? '♆' : '🪐'}
+                                    </span>
+                                    <span>{planet.name}</span>
+                                </div>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Right Control Panel */}
+                <div style={{
+                    position: 'fixed',
+                    right: 0,
+                    top: 0,
+                    width: '200px',
+                    height: '100vh',
+                    background: 'rgba(0,0,0,0.9)',
+                    color: 'white',
+                    padding: '20px',
+                    zIndex: 1000,
+                    overflowY: 'auto',
+                    borderLeft: '1px solid rgba(255,255,255,0.2)'
+                }}>
+                    <h3 style={{
+                        margin: '0 0 20px 0',
+                        fontSize: '16px',
+                        textAlign: 'center',
+                        borderBottom: '1px solid rgba(255,255,255,0.3)',
+                        paddingBottom: '10px'
+                    }}>
+                        🎛️ Controls
+                    </h3>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                        {/* View Mode Toggle */}
+                        <div>
+                            <label style={{ display: 'block', marginBottom: '8px', fontSize: '12px' }}>
+                                Camera Mode
+                            </label>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                                <input
+                                    type="checkbox"
+                                    checked={is3DMode}
+                                    onChange={this.handleViewModeChange}
+                                    style={{ transform: 'scale(1.2)' }}
+                                />
+                                <span>{is3DMode ? '3D View' : '2D View'}</span>
+                            </label>
+                        </div>
+
+                        {/* Animation Toggle */}
+                        <div>
+                            <label style={{ display: 'block', marginBottom: '8px', fontSize: '12px' }}>
+                                Animation
+                            </label>
+                            <button
+                                onClick={this.handleAnimationToggle}
+                                style={{
+                                    background: isAnimationRunning
+                                        ? 'rgba(0,255,0,0.2)'
+                                        : 'rgba(255,0,0,0.2)',
+                                    border: '1px solid rgba(255,255,255,0.3)',
+                                    color: 'white',
+                                    padding: '8px 15px',
+                                    cursor: 'pointer',
+                                    borderRadius: '6px',
+                                    width: '100%',
+                                    fontSize: '14px'
+                                }}
+                            >
+                                {isAnimationRunning ? '⏸️ Pause' : '▶️ Play'}
+                            </button>
+                        </div>
+
+                        {/* Speed Control */}
+                        <div>
+                            <label style={{ display: 'block', marginBottom: '8px', fontSize: '12px' }}>
+                                Speed: {animationSpeed}x
+                            </label>
+                            <input
+                                type="range"
+                                min="0.1"
+                                max="5"
+                                step="0.1"
+                                value={animationSpeed}
+                                onChange={this.handleSpeedChange}
+                                style={{
+                                    width: '100%',
+                                    appearance: 'none',
+                                    height: '4px',
+                                    borderRadius: '2px',
+                                    background: 'rgba(255,255,255,0.3)',
+                                    outline: 'none'
+                                }}
+                            />
+                        </div>
+                    </div>
+                </div>
+
                 {/* 3D Scene */}
                 <div
                     ref={this.mountRef}
                     style={{
                         width: '100%',
                         height: '100%',
-                        cursor: 'grab'
+                        cursor: 'grab',
+                        marginLeft: '250px',
+                        marginRight: '200px'
                     }}
                 />
-
-                {/* Header Menu */}
-                <div style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    background: 'rgba(0,0,0,0.7)',
-                    color: 'white',
-                    padding: '10px',
-                    zIndex: 1000
-                }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' }}>
-                        <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
-                            {solarSystemData.planets.map(planet => (
-                                <button
-                                    key={planet.name}
-                                    onClick={() => this.handlePlanetClick(planet.name)}
-                                    style={{
-                                        background: 'transparent',
-                                        border: '1px solid white',
-                                        color: 'white',
-                                        padding: '5px 10px',
-                                        cursor: 'pointer',
-                                        borderRadius: '3px'
-                                    }}
-                                >
-                                    {planet.name}
-                                </button>
-                            ))}
-                        </div>
-
-                        <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
-                            {/* View Mode Toggle */}
-                            <label style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                                <input
-                                    type="checkbox"
-                                    checked={is3DMode}
-                                    onChange={this.handleViewModeChange}
-                                />
-                                3D View
-                            </label>
-
-                            {/* Animation Toggle */}
-                            <button
-                                onClick={this.handleAnimationToggle}
-                                style={{
-                                    background: 'transparent',
-                                    border: '1px solid white',
-                                    color: 'white',
-                                    padding: '5px 10px',
-                                    cursor: 'pointer',
-                                    borderRadius: '3px'
-                                }}
-                            >
-                                {isAnimationRunning ? '⏸️' : '▶️'}
-                            </button>
-
-                            {/* Speed Control */}
-                            <label style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                                Speed:
-                                <input
-                                    type="range"
-                                    min="0.1"
-                                    max="5"
-                                    step="0.1"
-                                    value={animationSpeed}
-                                    onChange={this.handleSpeedChange}
-                                    style={{ width: '80px' }}
-                                />
-                                {animationSpeed}x
-                            </label>
-                        </div>
-                    </div>
-                </div>
 
                 {/* Planet Info Panel */}
                 <InfoPanel
