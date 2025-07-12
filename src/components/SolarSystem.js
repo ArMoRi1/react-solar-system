@@ -211,6 +211,18 @@ class SolarSystem extends Component {
         this.setState({ animationSpeed: parseFloat(event.target.value) });
     };
 
+    handleResetCamera = () => {
+        // Переключаємо в 2D режим
+        this.setState({
+            is3DMode: false,
+            showInfo: false,
+            selectedPlanet: null
+        });
+
+        // Повертаємо до початкової позиції через switchView
+        this.switchView('2d');
+    };
+
     handlePlanetClick = (planetName) => {
         this.moveToObject(planetName);
         this.setState({
@@ -506,6 +518,43 @@ class SolarSystem extends Component {
                                     outline: 'none'
                                 }}
                             />
+                        </div>
+
+                        {/* Reset Camera */}
+                        <div>
+                            <label style={{ display: 'block', marginBottom: '8px', fontSize: '12px' }}>
+                                Camera Reset
+                            </label>
+                            <button
+                                onClick={this.handleResetCamera}
+                                style={{
+                                    background: 'rgba(255,165,0,0.2)',
+                                    border: '1px solid rgba(255,165,0,0.5)',
+                                    color: '#FFA500',
+                                    padding: '10px',
+                                    cursor: 'pointer',
+                                    borderRadius: '8px',
+                                    width: '100%',
+                                    fontSize: '12px',
+                                    fontWeight: '500',
+                                    transition: 'all 0.3s ease',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '6px'
+                                }}
+                                onMouseEnter={(e) => {
+                                    e.target.style.background = 'rgba(255,165,0,0.3)';
+                                    e.target.style.borderColor = '#FFA500';
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.target.style.background = 'rgba(255,165,0,0.2)';
+                                    e.target.style.borderColor = 'rgba(255,165,0,0.5)';
+                                }}
+                            >
+                                <span style={{ fontSize: '14px' }}>⟲</span>
+                                Reset View
+                            </button>
                         </div>
                     </div>
                 </div>
