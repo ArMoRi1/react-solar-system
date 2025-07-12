@@ -32,17 +32,20 @@ const DetailedInfoPanel = ({ showInfo, selectedPlanet, infoPosition }) => {
     return (
         <div style={{
             position: 'fixed',
-            right: '0', // Повністю справа
+            right: '200px', // Зміщуємо вліво від правої панелі
             top: '0',
             bottom: '0',
-            width: '50vw', // 50% ширини вікна
+            width: '500px', // Збільшили ширину з 400px до 500px
             background: 'rgba(0,0,0,0.95)',
             color: 'white',
             border: 'none',
             borderLeft: '1px solid rgba(255,255,255,0.2)',
+            borderRight: '1px solid rgba(255,255,255,0.2)',
             zIndex: 1000,
             overflowY: 'auto',
-            boxShadow: '-8px 0 32px rgba(0,0,0,0.8)'
+            boxShadow: '-8px 0 32px rgba(0,0,0,0.8)',
+            transform: showInfo ? 'translateX(0)' : 'translateX(100%)',
+            transition: 'transform 0.3s ease'
         }}>
             {loading ? (
                 <div style={{

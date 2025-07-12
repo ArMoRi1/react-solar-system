@@ -33,10 +33,8 @@ class ThreeInit {
         this.raycaster = new THREE.Raycaster();
         this.mouse = new THREE.Vector2();
 
-        // Lighting
-        const sunLight = new THREE.PointLight(0xffffff, 10000, 300);
-        sunLight.position.set(0, 0, 0);
-        this.scene.add(sunLight);
+        // Improved Lighting System
+        this.setupLighting();
 
         // Create starfield
         this.createStarfield();
@@ -48,6 +46,36 @@ class ThreeInit {
             raycaster: this.raycaster,
             mouse: this.mouse
         };
+    }
+
+    setupLighting() {
+        // Головне освітлення від Сонця
+        const sunLight = new THREE.PointLight(0xffffff, 8000, 400);
+        sunLight.position.set(0, 0, 0);
+        this.scene.add(sunLight);
+
+        // Ambient light для загального освітлення
+        const ambientLight = new THREE.AmbientLight(0x404040, 0.3); // М'яке загальне освітлення
+        this.scene.add(ambientLight);
+
+        // Додаткове направлене освітлення для кращої видимості з боків
+        const directionalLight1 = new THREE.DirectionalLight(0xffffff, 0.4);
+        directionalLight1.position.set(100, 50, 100);
+        directionalLight1.target.position.set(0, 0, 0);
+        this.scene.add(directionalLight1);
+        this.scene.add(directionalLight1.target);
+
+        // Ще одне направлене освітлення з протилежного боку
+        const directionalLight2 = new THREE.DirectionalLight(0x8888ff, 0.2);
+        directionalLight2.position.set(-100, 30, -100);
+        directionalLight2.target.position.set(0, 0, 0);
+        this.scene.add(directionalLight2);
+        this.scene.add(directionalLight2.target);
+
+        // Rim light для контуру об'єктів
+        const rimLight = new THREE.DirectionalLight(0xffffff, 0.3);
+        rimLight.position.set(-50, 100, 50);
+        this.scene.add(rimLight);
     }
 
     createStarfield() {

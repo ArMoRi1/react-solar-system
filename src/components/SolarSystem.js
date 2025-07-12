@@ -330,6 +330,26 @@ class SolarSystem extends Component {
                     </div>
                 </div>
 
+                {/* 3D Scene */}
+                <div
+                    ref={this.mountRef}
+                    style={{
+                        width: showInfo ? 'calc(100vw - 750px)' : 'calc(100vw - 450px)', // Збільшили відступ для більшої інфо панелі
+                        height: '100%',
+                        cursor: 'grab',
+                        marginLeft: '250px',
+                        marginRight: showInfo ? '500px' : '200px', // Збільшили правий відступ
+                        transition: 'all 0.3s ease'
+                    }}
+                />
+
+                {/* Planet Info Panel */}
+                <DetailedInfoPanel
+                    showInfo={showInfo}
+                    selectedPlanet={selectedPlanet}
+                    infoPosition={infoPosition}
+                />
+
                 {/* Right Control Panel */}
                 <div style={{
                     position: 'fixed',
@@ -340,7 +360,7 @@ class SolarSystem extends Component {
                     background: 'rgba(0,0,0,0.9)',
                     color: 'white',
                     padding: '20px',
-                    zIndex: 1000,
+                    zIndex: 1001, // Вищий z-index щоб бути поверх інфо панелі
                     overflowY: 'auto',
                     borderLeft: '1px solid rgba(255,255,255,0.2)'
                 }}>
@@ -558,27 +578,6 @@ class SolarSystem extends Component {
                         </div>
                     </div>
                 </div>
-                )}
-
-                {/* 3D Scene */}
-                <div
-                    ref={this.mountRef}
-                    style={{
-                        width: showInfo ? 'calc((100vw - 450px) / 2)' : 'calc(100vw - 450px)', // Половина центральної частини коли showInfo
-                        height: '100%',
-                        cursor: 'grab',
-                        marginLeft: '250px',
-                        marginRight: '0',
-                        transition: 'all 0.3s ease'
-                    }}
-                />
-
-                {/* Planet Info Panel */}
-                <DetailedInfoPanel
-                    showInfo={showInfo}
-                    selectedPlanet={selectedPlanet}
-                    infoPosition={infoPosition}
-                />
 
                 {/* Tooltip */}
                 {tooltipVisible && (

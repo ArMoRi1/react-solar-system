@@ -173,7 +173,7 @@ class CameraController {
         animateCamera();
     }
 
-    // Оновлений moveToObject для центрування об'єкта в лівій частині
+    // Оновлений moveToObject для центрування об'єкта з урахуванням інтерфейсу
     moveToObject(object, stopAnimation = true) {
         if (!object) return;
 
@@ -190,9 +190,12 @@ class CameraController {
         this.isMovingCamera = true;
         const objectRadius = object.geometry.parameters.radius;
 
-        // Розраховуємо позицію для центру лівої частини екрана
-        const distance = objectRadius * 6;
-        const offset = new THREE.Vector3(distance, distance * 0.6, distance);
+        // Розраховуємо позицію камери з урахуванням перекриття інформаційною панеллю
+        const distance = objectRadius * 4;
+
+        // Зміщуємо камеру так, щоб об'єкт був зліва від центру сцени
+        // Це компенсує перекриття інформаційною панеллю справа
+        const offset = new THREE.Vector3(distance * 1.3, distance * 0.3, distance * 1.1);
 
         const duration = 1500;
         const startCameraPos = this.camera.position.clone();
@@ -220,12 +223,18 @@ class CameraController {
             const worldPosition = new THREE.Vector3();
             object.getWorldPosition(worldPosition);
 
-            const currentTargetPosition = new THREE.Vector3()
+            // Зміщуємо позицію камери, щоб об'єкт був лівіше від центру
+            const targetCameraPosition = new THREE.Vector3()
                 .copy(worldPosition)
                 .add(offset);
 
-            this.camera.position.lerpVectors(startCameraPos, currentTargetPosition, ease);
-            this.camera.lookAt(worldPosition); // Дивимося прямо на об'єкт
+            // Створюємо точку, на яку дивиться камера (трохи лівіше від об'єкта)
+            const lookAtTarget = new THREE.Vector3()
+                .copy(worldPosition)
+                .add(new THREE.Vector3(-objectRadius * 0.8, 0, 0)); // Зміщуємо точку фокусу лівіше
+
+            this.camera.position.lerpVectors(startCameraPos, targetCameraPosition, ease);
+            this.camera.lookAt(lookAtTarget); // Дивимося на зміщену точку
 
             if (progress < 1) {
                 requestAnimationFrame(animate);
@@ -234,7 +243,7 @@ class CameraController {
                 if (this.controls) {
                     this.controls.enabled = true;
                     if (this.controls.target) {
-                        this.controls.target.copy(worldPosition);
+                        this.controls.target.copy(lookAtTarget);
                     }
                     if (this.controls.update) this.controls.update();
                 }
