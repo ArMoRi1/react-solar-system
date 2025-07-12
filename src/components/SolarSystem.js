@@ -195,8 +195,8 @@ class SolarSystem extends Component {
         window.removeEventListener('resize', this.handleResize);
     }
 
-    handleViewModeChange = (event) => {
-        const is3DMode = event.target.checked;
+    handleViewModeChange = () => {
+        const is3DMode = !this.state.is3DMode;
         this.setState({ is3DMode });
         this.switchView(is3DMode ? '3d' : '2d');
     };
@@ -299,17 +299,17 @@ class SolarSystem extends Component {
                                     e.target.style.transform = 'translateX(0)';
                                 }}
                             >
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                    <span style={{ fontSize: '16px' }}>
-                                        {planet.name === 'Sun' ? '☀️' :
-                                            planet.name === 'Mercury' ? '☿️' :
-                                                planet.name === 'Venus' ? '♀️' :
-                                                    planet.name === 'Earth' ? '🌍' :
-                                                        planet.name === 'Mars' ? '♂️' :
-                                                            planet.name === 'Jupiter' ? '♃' :
-                                                                planet.name === 'Saturn' ? '♄' :
-                                                                    planet.name === 'Uranus' ? '♅' :
-                                                                        planet.name === 'Neptune' ? '♆' : '🪐'}
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                    <span style={{ fontSize: '14px', width: '20px', textAlign: 'center' }}>
+                                        {planet.name === 'Sun' ? '⚡' :
+                                            planet.name === 'Mercury' ? '◐' :
+                                                planet.name === 'Venus' ? '◯' :
+                                                    planet.name === 'Earth' ? '●' :
+                                                        planet.name === 'Mars' ? '◉' :
+                                                            planet.name === 'Jupiter' ? '◎' :
+                                                                planet.name === 'Saturn' ? '⬡' :
+                                                                    planet.name === 'Uranus' ? '◈' :
+                                                                        planet.name === 'Neptune' ? '◆' : '○'}
                                     </span>
                                     <span>{planet.name}</span>
                                 </div>
@@ -348,39 +348,141 @@ class SolarSystem extends Component {
                             <label style={{ display: 'block', marginBottom: '8px', fontSize: '12px' }}>
                                 Camera Mode
                             </label>
-                            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                                <input
-                                    type="checkbox"
-                                    checked={is3DMode}
-                                    onChange={this.handleViewModeChange}
-                                    style={{ transform: 'scale(1.2)' }}
-                                />
-                                <span>{is3DMode ? '3D View' : '2D View'}</span>
-                            </label>
+                            <div
+                                style={{
+                                    position: 'relative',
+                                    width: '100%',
+                                    height: '35px',
+                                    background: is3DMode ? '#007AFF' : '#333',
+                                    borderRadius: '17.5px',
+                                    cursor: 'pointer',
+                                    transition: 'background-color 0.3s ease',
+                                    border: '1px solid rgba(255,255,255,0.2)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    padding: '3px'
+                                }}
+                                onClick={this.handleViewModeChange}
+                            >
+                                <div
+                                    style={{
+                                        position: 'absolute',
+                                        top: '3px',
+                                        left: is3DMode ? 'calc(50% + 1px)' : '3px',
+                                        width: 'calc(50% - 4px)',
+                                        height: '29px',
+                                        background: '#fff',
+                                        borderRadius: '14.5px',
+                                        transition: 'left 0.3s ease',
+                                        boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        fontSize: '12px',
+                                        fontWeight: 'bold',
+                                        color: '#333'
+                                    }}
+                                >
+                                    {is3DMode ? '3D' : '2D'}
+                                </div>
+
+                                {/* Labels */}
+                                <div style={{
+                                    position: 'absolute',
+                                    left: '0',
+                                    width: '50%',
+                                    textAlign: 'center',
+                                    fontSize: '11px',
+                                    color: !is3DMode ? 'transparent' : 'rgba(255,255,255,0.8)',
+                                    fontWeight: '500',
+                                    pointerEvents: 'none'
+                                }}>
+                                    2D
+                                </div>
+                                <div style={{
+                                    position: 'absolute',
+                                    right: '0',
+                                    width: '50%',
+                                    textAlign: 'center',
+                                    fontSize: '11px',
+                                    color: is3DMode ? 'transparent' : 'rgba(255,255,255,0.8)',
+                                    fontWeight: '500',
+                                    pointerEvents: 'none'
+                                }}>
+                                    3D
+                                </div>
+                            </div>
                         </div>
 
                         {/* Animation Toggle */}
                         <div>
                             <label style={{ display: 'block', marginBottom: '8px', fontSize: '12px' }}>
-                                Animation
+                                Animation Control
                             </label>
-                            <button
-                                onClick={this.handleAnimationToggle}
+                            <div
                                 style={{
-                                    background: isAnimationRunning
-                                        ? 'rgba(0,255,0,0.2)'
-                                        : 'rgba(255,0,0,0.2)',
-                                    border: '1px solid rgba(255,255,255,0.3)',
-                                    color: 'white',
-                                    padding: '8px 15px',
-                                    cursor: 'pointer',
-                                    borderRadius: '6px',
+                                    position: 'relative',
                                     width: '100%',
-                                    fontSize: '14px'
+                                    height: '35px',
+                                    background: isAnimationRunning ? '#34C759' : '#FF3B30',
+                                    borderRadius: '17.5px',
+                                    cursor: 'pointer',
+                                    transition: 'background-color 0.3s ease',
+                                    border: '1px solid rgba(255,255,255,0.2)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    padding: '3px'
                                 }}
+                                onClick={this.handleAnimationToggle}
                             >
-                                {isAnimationRunning ? '⏸️ Pause' : '▶️ Play'}
-                            </button>
+                                <div
+                                    style={{
+                                        position: 'absolute',
+                                        top: '3px',
+                                        left: isAnimationRunning ? 'calc(50% + 1px)' : '3px',
+                                        width: 'calc(50% - 4px)',
+                                        height: '29px',
+                                        background: '#fff',
+                                        borderRadius: '14.5px',
+                                        transition: 'left 0.3s ease',
+                                        boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        fontSize: '12px',
+                                        fontWeight: 'bold',
+                                        color: '#333'
+                                    }}
+                                >
+                                    {isAnimationRunning ? '▸' : '◼'}
+                                </div>
+
+                                {/* Labels */}
+                                <div style={{
+                                    position: 'absolute',
+                                    left: '0',
+                                    width: '50%',
+                                    textAlign: 'center',
+                                    fontSize: '11px',
+                                    color: !isAnimationRunning ? 'transparent' : 'rgba(255,255,255,0.8)',
+                                    fontWeight: '500',
+                                    pointerEvents: 'none'
+                                }}>
+                                    Pause
+                                </div>
+                                <div style={{
+                                    position: 'absolute',
+                                    right: '0',
+                                    width: '50%',
+                                    textAlign: 'center',
+                                    fontSize: '11px',
+                                    color: isAnimationRunning ? 'transparent' : 'rgba(255,255,255,0.8)',
+                                    fontWeight: '500',
+                                    pointerEvents: 'none'
+                                }}>
+                                    Play
+                                </div>
+                            </div>
                         </div>
 
                         {/* Speed Control */}
