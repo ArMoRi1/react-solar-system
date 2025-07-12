@@ -30,6 +30,11 @@ class SolarSystem extends Component {
         this.renderer = null;
         this.raycaster = null;
         this.mouse = null;
+
+        // Додаємо змінні для відстеження перетягування
+        this.isDragging = false;
+        this.mouseStartPosition = { x: 0, y: 0 };
+        this.dragThreshold = 5; // пікселі - мінімальна відстань для визначення перетягування
     }
 
     componentDidMount() {
@@ -96,11 +101,31 @@ class SolarSystem extends Component {
     }
 
     setupEventListeners() {
-        this.renderer.domElement.addEventListener('click', this.handleClick);
+        this.renderer.domElement.addEventListener('mousedown', this.handleMouseDown);
         this.renderer.domElement.addEventListener('mousemove', this.handleMouseMove);
+        this.renderer.domElement.addEventListener('mouseup', this.handleMouseUp);
         this.renderer.domElement.addEventListener('mouseout', this.handleMouseOut);
         window.addEventListener('resize', this.handleResize);
     }
+
+    handleMouseDown = (event) => {
+        this.isDragging = false;
+        this.mouseStartPosition = { x: event.clientX, y: event.clientY };
+    };
+
+    handleMouseUp = (event) => {
+        // Обчислюємо відстань від початкової позиції
+        const deltaX = event.clientX - this.mouseStartPosition.x;
+        const deltaY = event.clientY - this.mouseStartPosition.y;
+        const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+        // Якщо відстань менше порогу - це клік, інакше - перетягування
+        if (distance < this.dragThreshold) {
+            this.handleClick(event);
+        }
+
+        this.isDragging = false;
+    };
 
     handleClick = (event) => {
         const rect = this.renderer.domElement.getBoundingClientRect();
@@ -111,13 +136,32 @@ class SolarSystem extends Component {
         const intersects = this.raycaster.intersectObjects(this.planetUtils.getAllPlanets());
 
         if (intersects.length > 0) {
-            const selectedPlanet = intersects[0].object;
-            const planetName = selectedPlanet.userData.planetName;
+            const selectedObject = intersects[0].object;
+
+            // Перевіряємо, чи це клік по невидимій площині (означає клік у порожньому місці)
+            if (selectedObject.userData.isClickPlane) {
+                // Клік у порожнє місце - повертаємося до загального виду
+                this.setState({ showInfo: false, selectedPlanet: null });
+                this.planetUtils.showAllPlanets();
+                this.handleResetCamera();
+                return;
+            }
+
+            // Це клік по планеті
+            const planetName = selectedObject.userData.planetName;
 
             if (planetName) {
-                if (this.state.showInfo && this.state.selectedPlanet === planetName) {
-                    this.setState({ showInfo: false, selectedPlanet: null });
+                // Перевіряємо, чи клікнули на ту ж планету що вже в фокусі
+                if (this.planetUtils.isFocused() && this.planetUtils.getFocusedPlanet() === planetName) {
+                    // Якщо це та сама планета - повертаємося до загального виду
+                    this.setState({
+                        showInfo: false,
+                        selectedPlanet: null
+                    });
+                    this.planetUtils.showAllPlanets();
+                    this.handleResetCamera(); // Повертаємо камеру до початкової позиції
                 } else {
+                    // Якщо це нова планета - фокусуємося на ній
                     this.setState({
                         showInfo: true,
                         selectedPlanet: planetName,
@@ -126,45 +170,69 @@ class SolarSystem extends Component {
                             y: event.clientY + 20
                         }
                     });
+                    this.planetUtils.focusOnPlanet(planetName);
+                    this.moveToObject(planetName);
                 }
-                this.moveToObject(planetName);
             }
         } else {
+            // Клік не по жодному об'єкту - повертаємося до загального виду
             this.setState({ showInfo: false, selectedPlanet: null });
-            // Показуємо всі об'єкти назад коли кліку не по планеті
             this.planetUtils.showAllPlanets();
+            this.handleResetCamera();
         }
     };
 
     handleMouseMove = (event) => {
-        const rect = this.renderer.domElement.getBoundingClientRect();
-        this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-        this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+        // Перевіряємо, чи почалося перетягування
+        if (this.mouseStartPosition.x !== 0 || this.mouseStartPosition.y !== 0) {
+            const deltaX = event.clientX - this.mouseStartPosition.x;
+            const deltaY = event.clientY - this.mouseStartPosition.y;
+            const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
 
-        this.raycaster.setFromCamera(this.mouse, this.camera);
-        const intersects = this.raycaster.intersectObjects(this.planetUtils.getAllPlanets(), true);
+            if (distance > this.dragThreshold) {
+                this.isDragging = true;
+            }
+        }
 
-        if (intersects.length > 0) {
-            const selectedPlanet = intersects[0].object;
-            const planetName = selectedPlanet.userData.planetName;
+        // Tooltip logic - показуємо тільки якщо не перетягуємо
+        if (!this.isDragging) {
+            const rect = this.renderer.domElement.getBoundingClientRect();
+            this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+            this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
-            if (planetName) {
-                this.setState({
-                    tooltipVisible: true,
-                    tooltipText: planetName,
-                    tooltipPosition: {
-                        x: event.clientX,
-                        y: event.clientY - 40
-                    }
-                });
+            this.raycaster.setFromCamera(this.mouse, this.camera);
+            const intersects = this.raycaster.intersectObjects(this.planetUtils.getAllPlanets(), true);
+
+            if (intersects.length > 0) {
+                const selectedObject = intersects[0].object;
+                const planetName = selectedObject.userData.planetName;
+
+                // Показуємо tooltip тільки для планет, не для невидимої площини
+                if (planetName && !selectedObject.userData.isClickPlane) {
+                    this.setState({
+                        tooltipVisible: true,
+                        tooltipText: planetName,
+                        tooltipPosition: {
+                            x: event.clientX,
+                            y: event.clientY - 40
+                        }
+                    });
+                } else {
+                    this.setState({ tooltipVisible: false });
+                }
+            } else {
+                this.setState({ tooltipVisible: false });
             }
         } else {
+            // Ховаємо tooltip під час перетягування
             this.setState({ tooltipVisible: false });
         }
     };
 
     handleMouseOut = () => {
         this.setState({ tooltipVisible: false });
+        this.isDragging = false;
+        this.mouseStartPosition = { x: 0, y: 0 };
     };
 
     handleResize = () => {
@@ -196,6 +264,14 @@ class SolarSystem extends Component {
             this.threeInit.dispose();
         }
         window.removeEventListener('resize', this.handleResize);
+
+        // Очищуємо нові event listeners
+        if (this.renderer && this.renderer.domElement) {
+            this.renderer.domElement.removeEventListener('mousedown', this.handleMouseDown);
+            this.renderer.domElement.removeEventListener('mousemove', this.handleMouseMove);
+            this.renderer.domElement.removeEventListener('mouseup', this.handleMouseUp);
+            this.renderer.domElement.removeEventListener('mouseout', this.handleMouseOut);
+        }
     }
 
     handleViewModeChange = () => {
@@ -230,18 +306,31 @@ class SolarSystem extends Component {
     };
 
     handlePlanetClick = (planetName) => {
-        // Спочатку оновлюємо стан
+        // Перевіряємо, чи це та сама планета що вже в фокусі
+        if (this.planetUtils.isFocused() && this.planetUtils.getFocusedPlanet() === planetName) {
+            // Якщо це та сама планета - повертаємося до загального виду
+            this.setState({
+                showInfo: false,
+                selectedPlanet: null,
+                is3DMode: false
+            });
+            this.planetUtils.showAllPlanets();
+            this.handleResetCamera();
+            return;
+        }
+
+        // Інакше фокусуємося на новій планеті
         this.setState({
             showInfo: true,
             selectedPlanet: planetName,
             infoPosition: { x: 20, y: 100 },
-            is3DMode: true // Переключаємо в 3D для кращого обертання
+            is3DMode: true
         });
 
-        // Ховаємо всі інші об'єкти
+        // Фокусуємося на планеті (повністю ховаємо інші)
         this.planetUtils.focusOnPlanet(planetName);
 
-        // Потім рухаємо камеру
+        // Рухаємо камеру до планети
         const planet = this.planetUtils.getPlanetByName(planetName);
         if (planet) {
             this.setState({ isAnimationRunning: false });
@@ -252,7 +341,7 @@ class SolarSystem extends Component {
                 if (this.cameraController.controls) {
                     this.cameraController.controls.enabled = true;
                 }
-            }, 1600); // Після завершення анімації камери
+            }, 1600);
         }
     };
 
@@ -358,11 +447,11 @@ class SolarSystem extends Component {
                 <div
                     ref={this.mountRef}
                     style={{
-                        width: showInfo ? 'calc(100vw - 750px)' : 'calc(100vw - 450px)', // Збільшили відступ для більшої інфо панелі
+                        width: showInfo ? 'calc(100vw - 750px)' : 'calc(100vw - 450px)',
                         height: '100%',
-                        cursor: 'grab',
+                        cursor: this.isDragging ? 'grabbing' : 'grab',
                         marginLeft: '250px',
-                        marginRight: showInfo ? '500px' : '200px', // Збільшили правий відступ
+                        marginRight: showInfo ? '500px' : '200px',
                         transition: 'all 0.3s ease'
                     }}
                 />
@@ -377,14 +466,14 @@ class SolarSystem extends Component {
                 {/* Right Control Panel */}
                 <div style={{
                     position: 'fixed',
-                    right: 0, // Завжди справа
+                    right: 0,
                     top: 0,
                     width: '200px',
                     height: '100vh',
                     background: 'rgba(0,0,0,0.9)',
                     color: 'white',
                     padding: '20px',
-                    zIndex: 1001, // Вищий z-index щоб бути поверх інфо панелі
+                    zIndex: 1001,
                     overflowY: 'auto',
                     borderLeft: '1px solid rgba(255,255,255,0.2)'
                 }}>
@@ -604,7 +693,7 @@ class SolarSystem extends Component {
                 </div>
 
                 {/* Tooltip */}
-                {tooltipVisible && (
+                {tooltipVisible && !this.isDragging && (
                     <div style={{
                         position: 'absolute',
                         left: tooltipPosition.x,

@@ -173,7 +173,7 @@ class CameraController {
         animateCamera();
     }
 
-    // Оновлений moveToObject з урахуванням стану інформаційної панелі
+    // Оновлений moveToObject з збільшеною відстанню
     moveToObject(object, stopAnimation = true, infoPanelOpen = false) {
         if (!object) return;
 
@@ -189,10 +189,25 @@ class CameraController {
 
         this.isMovingCamera = true;
         const objectRadius = object.geometry.parameters.radius;
-        const distance = objectRadius * 2.5; // Трохи ближче для кращого огляду
 
-        // Позиціонуємо камеру для ідеального огляду в ізоляції
-        const offset = new THREE.Vector3(distance, distance * 0.3, distance * 0.3);
+        // Збільшуємо відстань залежно від розміру планети
+        let distance;
+        if (objectRadius > 10) {
+            // Для великих планет (Сонце, Юпітер, Сатурн)
+            distance = objectRadius * 4;
+        } else if (objectRadius > 5) {
+            // Для середніх планет (Юпітер, Сатурн)
+            distance = objectRadius * 5;
+        } else if (objectRadius > 2) {
+            // Для планет середнього розміру (Нептун, Уран)
+            distance = objectRadius * 6;
+        } else {
+            // Для маленьких планет (Меркурій, Венера, Земля, Марс)
+            distance = Math.max(objectRadius * 8, 15); // Мінімум 15 одиниць відстані
+        }
+
+        // Позиціонуємо камеру для ідеального огляду
+        const offset = new THREE.Vector3(distance, distance * 0.4, distance * 0.4);
 
         const duration = 1500;
         const startCameraPos = this.camera.position.clone();

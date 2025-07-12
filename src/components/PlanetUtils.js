@@ -7,7 +7,9 @@ class PlanetUtils {
         this.planets = [];
         this.planetInstances = [];
         this.asteroidBelt = null;
-        this.originalMaterials = new Map(); // Зберігаємо оригінальні матеріали
+        this.originalMaterials = new Map();
+        this.focusedPlanet = null;
+        this.invisibleClickPlane = null; // Невидима площина для детекції кліків
     }
 
     createAsteroid(position, radius) {
@@ -44,6 +46,23 @@ class PlanetUtils {
             const planetMesh = planet.getPlanetMesh();
             this.originalMaterials.set(planetMesh, planetMesh.material.clone());
         });
+
+        // Створюємо невидиму площину для детекції кліків поза планетами
+        this.createInvisibleClickPlane();
+    }
+
+    createInvisibleClickPlane() {
+        // Велика невидима площина для ловлення кліків поза планетами
+        const geometry = new THREE.PlaneGeometry(2000, 2000);
+        const material = new THREE.MeshBasicMaterial({
+            transparent: true,
+            opacity: 0,
+            side: THREE.DoubleSide
+        });
+        this.invisibleClickPlane = new THREE.Mesh(geometry, material);
+        this.invisibleClickPlane.position.set(0, 0, -500); // Позаду всіх об'єктів
+        this.invisibleClickPlane.userData.isClickPlane = true;
+        this.scene.add(this.invisibleClickPlane);
     }
 
     animatePlanets(speed) {
@@ -62,12 +81,18 @@ class PlanetUtils {
     }
 
     getAllPlanets() {
-        // Повертаємо тільки видимі планети для raycaster
-        return this.planets.filter(planet => planet.visible);
+        // Повертаємо планети + невидиму площину для raycaster
+        const allObjects = [...this.planets];
+        if (this.invisibleClickPlane && this.focusedPlanet) {
+            allObjects.push(this.invisibleClickPlane);
+        }
+        return allObjects;
     }
 
-    // Нова функція для фокусування на планеті
+    // Функція для повної ізоляції планети
     focusOnPlanet(selectedPlanetName) {
+        this.focusedPlanet = selectedPlanetName;
+
         this.planetInstances.forEach(planetInstance => {
             const planetMesh = planetInstance.getPlanetMesh();
             const planetName = planetInstance.getName();
@@ -94,7 +119,6 @@ class PlanetUtils {
                         if (child !== planetMesh && child.material) {
                             // Показуємо кільця планети, але ховаємо орбітальні лінії
                             if (child.geometry && child.geometry.type === 'RingGeometry') {
-                                // Це кільце планети (Сатурн/Уран) - показуємо
                                 if (child.material.map) { // Має текстуру = кільце планети
                                     child.visible = true;
                                 } else { // Немає текстури = орбітальна лінія
@@ -113,10 +137,17 @@ class PlanetUtils {
         if (this.asteroidBelt) {
             this.asteroidBelt.visible = false;
         }
+
+        // Показуємо невидиму площину для кліків
+        if (this.invisibleClickPlane) {
+            this.invisibleClickPlane.visible = true;
+        }
     }
 
     // Функція для показу всіх планет назад
     showAllPlanets() {
+        this.focusedPlanet = null;
+
         this.planetInstances.forEach(planetInstance => {
             const planetMesh = planetInstance.getPlanetMesh();
 
@@ -135,6 +166,20 @@ class PlanetUtils {
         if (this.asteroidBelt) {
             this.asteroidBelt.visible = true;
         }
+
+        // Ховаємо невидиму площину
+        if (this.invisibleClickPlane) {
+            this.invisibleClickPlane.visible = false;
+        }
+    }
+
+    // Перевіряємо, чи є планета в фокусі
+    isFocused() {
+        return this.focusedPlanet !== null;
+    }
+
+    getFocusedPlanet() {
+        return this.focusedPlanet;
     }
 
     dispose() {
@@ -144,10 +189,16 @@ class PlanetUtils {
         this.planetInstances = [];
         this.planets = [];
         this.originalMaterials.clear();
+        this.focusedPlanet = null;
 
         if (this.asteroidBelt) {
             this.scene.remove(this.asteroidBelt);
             this.asteroidBelt = null;
+        }
+
+        if (this.invisibleClickPlane) {
+            this.scene.remove(this.invisibleClickPlane);
+            this.invisibleClickPlane = null;
         }
     }
 }

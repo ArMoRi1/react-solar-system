@@ -68,7 +68,7 @@ class NasaService {
                     "Composition: 73% hydrogen, 25% helium"
                 ],
                 nasaUrl: "https://science.nasa.gov/sun/",
-                imageUrl: "https://science.nasa.gov/wp-content/uploads/2023/09/sun-by-sdo-4.jpg"
+                imageUrl: "https://images.unsplash.com/photo-1446776653964-20c1d3a81b06?w=500&h=300&fit=crop"
             },
             Mercury: {
                 title: "Mercury - The Swift Planet",
@@ -80,7 +80,7 @@ class NasaService {
                     "Temperature: -173°C to 427°C"
                 ],
                 nasaUrl: "https://science.nasa.gov/mercury/",
-                imageUrl: "https://science.nasa.gov/wp-content/uploads/2023/09/mercury-globe-moss-1.jpg"
+                imageUrl: "https://images.unsplash.com/photo-1614728894747-a83421e2b9c9?w=500&h=300&fit=crop"
             },
             Venus: {
                 title: "Venus - Earth's Twin",
@@ -92,7 +92,7 @@ class NasaService {
                     "Atmosphere: 96% carbon dioxide"
                 ],
                 nasaUrl: "https://science.nasa.gov/venus/",
-                imageUrl: "https://science.nasa.gov/wp-content/uploads/2023/09/venus-by-messenger-1.jpg"
+                imageUrl: "https://images.unsplash.com/photo-1614313913007-2b4ae8ce32d6?w=500&h=300&fit=crop"
             },
             Earth: {
                 title: "Earth - Our Blue Marble",
@@ -104,7 +104,7 @@ class NasaService {
                     "1 Moon: Luna"
                 ],
                 nasaUrl: "https://science.nasa.gov/earth/",
-                imageUrl: "https://science.nasa.gov/wp-content/uploads/2023/09/blue-marble-apollo-17.jpg"
+                imageUrl: "https://images.unsplash.com/photo-1446776653964-20c1d3a81b06?w=500&h=300&fit=crop"
             },
             Mars: {
                 title: "Mars - The Red Planet",
@@ -116,7 +116,7 @@ class NasaService {
                     "Average temperature: -80°F (-62°C)"
                 ],
                 nasaUrl: "https://science.nasa.gov/mars/",
-                imageUrl: "https://science.nasa.gov/wp-content/uploads/2023/09/mars-globe-valles-marineris-enhanced.jpg"
+                imageUrl: "https://images.unsplash.com/photo-1614728894747-a83421e2b9c9?w=500&h=300&fit=crop"
             },
             Jupiter: {
                 title: "Jupiter - The Gas Giant",
@@ -128,7 +128,7 @@ class NasaService {
                     "Day length: 9 hours 56 minutes"
                 ],
                 nasaUrl: "https://science.nasa.gov/jupiter/",
-                imageUrl: "https://science.nasa.gov/wp-content/uploads/2023/09/jupiter-by-juno-1.jpg"
+                imageUrl: "https://images.unsplash.com/photo-1614313913007-2b4ae8ce32d6?w=500&h=300&fit=crop"
             },
             Saturn: {
                 title: "Saturn - The Ringed Planet",
@@ -140,7 +140,7 @@ class NasaService {
                     "Hexagonal storm at north pole"
                 ],
                 nasaUrl: "https://science.nasa.gov/saturn/",
-                imageUrl: "https://science.nasa.gov/wp-content/uploads/2023/09/saturn-by-cassini-1.jpg"
+                imageUrl: "https://images.unsplash.com/photo-1446776653964-20c1d3a81b06?w=500&h=300&fit=crop"
             },
             Uranus: {
                 title: "Uranus - The Tilted Planet",
@@ -152,7 +152,7 @@ class NasaService {
                     "Year length: 84 Earth years"
                 ],
                 nasaUrl: "https://science.nasa.gov/uranus/",
-                imageUrl: "https://science.nasa.gov/wp-content/uploads/2023/09/uranus-by-voyager-2.jpg"
+                imageUrl: "https://images.unsplash.com/photo-1614728894747-a83421e2b9c9?w=500&h=300&fit=crop"
             },
             Neptune: {
                 title: "Neptune - The Windy Planet",
@@ -164,7 +164,7 @@ class NasaService {
                     "Discovery: First planet found by mathematical prediction"
                 ],
                 nasaUrl: "https://science.nasa.gov/neptune/",
-                imageUrl: "https://science.nasa.gov/wp-content/uploads/2023/09/neptune-by-voyager-2.jpg"
+                imageUrl: "https://images.unsplash.com/photo-1614313913007-2b4ae8ce32d6?w=500&h=300&fit=crop"
             }
         };
 
