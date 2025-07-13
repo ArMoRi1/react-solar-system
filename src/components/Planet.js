@@ -12,17 +12,44 @@ class Planet {
         this.createPlanet();
     }
 
+    // Функція для правильного шляху до текстур
+    getTexturePath(texturePath) {
+        // Для GitHub Pages додаємо process.env.PUBLIC_URL
+        const basePath = process.env.PUBLIC_URL || '';
+        return `${basePath}/${texturePath}`;
+    }
+
     createPlanet() {
         const { radius, texture, bumpMap, bumpScale, position, isSun, ring, name } = this.planetData;
 
         const geometry = new THREE.SphereGeometry(radius, 32, 32);
         const loader = new THREE.TextureLoader();
 
+        // Додаємо обробку помилок завантаження
+        loader.crossOrigin = 'anonymous';
+
         const material = isSun
-            ? new THREE.MeshBasicMaterial({ map: loader.load(texture) })
+            ? new THREE.MeshBasicMaterial({
+                map: loader.load(
+                    this.getTexturePath(texture),
+                    undefined, // onLoad
+                    undefined, // onProgress
+                    (error) => console.warn(`Failed to load texture: ${texture}`, error)
+                )
+            })
             : new THREE.MeshStandardMaterial({
-                map: loader.load(texture),
-                bumpMap: loader.load(bumpMap),
+                map: loader.load(
+                    this.getTexturePath(texture),
+                    undefined,
+                    undefined,
+                    (error) => console.warn(`Failed to load texture: ${texture}`, error)
+                ),
+                bumpMap: loader.load(
+                    this.getTexturePath(bumpMap),
+                    undefined,
+                    undefined,
+                    (error) => console.warn(`Failed to load bump map: ${bumpMap}`, error)
+                ),
                 bumpScale: bumpScale,
             });
 
@@ -68,9 +95,16 @@ class Planet {
 
     createPlanetRing(ringData, position) {
         const loader = new THREE.TextureLoader();
+        loader.crossOrigin = 'anonymous';
+
         const ringGeometry = new THREE.RingGeometry(ringData.innerRadius, ringData.outerRadius, 64);
         const ringMaterial = new THREE.MeshBasicMaterial({
-            map: loader.load(ringData.texture),
+            map: loader.load(
+                this.getTexturePath(ringData.texture),
+                undefined,
+                undefined,
+                (error) => console.warn(`Failed to load ring texture: ${ringData.texture}`, error)
+            ),
             side: THREE.DoubleSide,
             transparent: true,
             color: new THREE.Color(0x666666)
