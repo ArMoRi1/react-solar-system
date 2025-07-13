@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import NasaService from '../services/NasaService';
 
-const DetailedInfoPanel = ({ showInfo, selectedPlanet, infoPosition }) => {
+const DetailedInfoPanel = ({ showInfo, selectedPlanet, infoPosition, isMobile = false }) => {
     const [planetData, setPlanetData] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -43,20 +43,22 @@ const DetailedInfoPanel = ({ showInfo, selectedPlanet, infoPosition }) => {
 
             <div style={{
                 position: 'fixed',
-                right: '200px',
-                top: '0',
-                bottom: '0',
-                width: '500px',
+                right: isMobile ? '0' : '200px',
+                top: isMobile ? '0' : '0',
+                bottom: isMobile ? '0' : '0',
+                left: isMobile ? '0' : 'auto',
+                width: isMobile ? '100vw' : '500px',
+                height: isMobile ? '100vh' : 'auto',
                 background: 'rgba(0,0,0,0.95)',
                 color: 'white',
                 border: 'none',
-                borderLeft: '1px solid rgba(255,255,255,0.2)',
-                borderRight: '1px solid rgba(255,255,255,0.2)',
-                zIndex: 1000,
+                borderLeft: isMobile ? 'none' : '1px solid rgba(255,255,255,0.2)',
+                borderRight: isMobile ? 'none' : '1px solid rgba(255,255,255,0.2)',
+                zIndex: isMobile ? 1004 : 1000,
                 overflowY: 'auto',
-                boxShadow: '-8px 0 32px rgba(0,0,0,0.8)',
-                transform: showInfo ? 'translateX(0)' : 'translateX(100%)',
-                transition: 'transform 0.3s ease'
+                boxShadow: isMobile ? 'none' : '-8px 0 32px rgba(0,0,0,0.8)',
+                transform: showInfo ? 'translateX(0)' : (isMobile ? 'translateY(100%)' : 'translateX(100%)'),
+                transition: isMobile ? 'transform 0.4s ease' : 'transform 0.3s ease'
             }}>
                 {loading ? (
                     <div style={{
@@ -103,6 +105,36 @@ const DetailedInfoPanel = ({ showInfo, selectedPlanet, infoPosition }) => {
                     </div>
                 ) : planetData ? (
                     <div style={{ padding: '0' }}>
+                        {/* Mobile close button */}
+                        {isMobile && (
+                            <div style={{
+                                position: 'sticky',
+                                top: 0,
+                                background: 'rgba(0,0,0,0.9)',
+                                padding: '15px 20px',
+                                borderBottom: '1px solid rgba(255,255,255,0.2)',
+                                zIndex: 10
+                            }}>
+                                <button
+                                    onClick={() => window.history.back()}
+                                    style={{
+                                        background: 'rgba(255,255,255,0.1)',
+                                        border: '1px solid rgba(255,255,255,0.3)',
+                                        color: 'white',
+                                        padding: '10px 15px',
+                                        borderRadius: '20px',
+                                        fontSize: '14px',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '8px'
+                                    }}
+                                >
+                                    ✕ Close
+                                </button>
+                            </div>
+                        )}
+
                         {/* Header з зображенням */}
                         {planetData.imageUrl && (
                             <div style={{
@@ -134,11 +166,11 @@ const DetailedInfoPanel = ({ showInfo, selectedPlanet, infoPosition }) => {
                         )}
 
                         {/* Основний контент */}
-                        <div style={{ padding: '20px' }}>
+                        <div style={{ padding: isMobile ? '15px' : '20px' }}>
                             {!planetData.imageUrl && (
                                 <h2 style={{
                                     margin: '0 0 20px 0',
-                                    fontSize: '24px',
+                                    fontSize: isMobile ? '28px' : '24px',
                                     fontWeight: 'bold',
                                     borderBottom: '1px solid rgba(255,255,255,0.2)',
                                     paddingBottom: '10px'
@@ -152,7 +184,7 @@ const DetailedInfoPanel = ({ showInfo, selectedPlanet, infoPosition }) => {
                                 <p style={{
                                     margin: '0',
                                     lineHeight: '1.6',
-                                    fontSize: '16px',
+                                    fontSize: isMobile ? '18px' : '16px',
                                     color: 'rgba(255,255,255,0.9)'
                                 }}>
                                     {planetData.description}
@@ -164,7 +196,7 @@ const DetailedInfoPanel = ({ showInfo, selectedPlanet, infoPosition }) => {
                                 <div style={{ marginBottom: '25px' }}>
                                     <h3 style={{
                                         margin: '0 0 15px 0',
-                                        fontSize: '18px',
+                                        fontSize: isMobile ? '20px' : '18px',
                                         color: '#007AFF'
                                     }}>
                                         🔬 Key Facts
@@ -176,16 +208,16 @@ const DetailedInfoPanel = ({ showInfo, selectedPlanet, infoPosition }) => {
                                     }}>
                                         {planetData.facts.map((fact, index) => (
                                             <li key={index} style={{
-                                                padding: '8px 0',
+                                                padding: isMobile ? '12px 0' : '8px 0',
                                                 borderBottom: '1px solid rgba(255,255,255,0.1)',
-                                                fontSize: '14px',
+                                                fontSize: isMobile ? '16px' : '14px',
                                                 display: 'flex',
                                                 alignItems: 'flex-start',
                                                 gap: '10px'
                                             }}>
                                                 <span style={{
                                                     color: '#007AFF',
-                                                    fontSize: '16px',
+                                                    fontSize: isMobile ? '18px' : '16px',
                                                     lineHeight: '1'
                                                 }}>•</span>
                                                 <span>{fact}</span>
@@ -234,7 +266,7 @@ const DetailedInfoPanel = ({ showInfo, selectedPlanet, infoPosition }) => {
 
                             {/* NASA посилання */}
                             {planetData.nasaUrl && (
-                                <div style={{ marginTop: '20px' }}>
+                                <div style={{ marginTop: '20px', marginBottom: isMobile ? '30px' : '0' }}>
                                     <a
                                         href={planetData.nasaUrl}
                                         target="_blank"
@@ -243,14 +275,16 @@ const DetailedInfoPanel = ({ showInfo, selectedPlanet, infoPosition }) => {
                                             display: 'inline-flex',
                                             alignItems: 'center',
                                             gap: '8px',
-                                            padding: '12px 20px',
+                                            padding: isMobile ? '15px 25px' : '12px 20px',
                                             background: 'linear-gradient(135deg, #007AFF, #005CBB)',
                                             color: 'white',
                                             textDecoration: 'none',
                                             borderRadius: '8px',
-                                            fontSize: '14px',
+                                            fontSize: isMobile ? '16px' : '14px',
                                             fontWeight: '500',
-                                            transition: 'all 0.3s ease'
+                                            transition: 'all 0.3s ease',
+                                            width: isMobile ? '100%' : 'auto',
+                                            justifyContent: 'center'
                                         }}
                                         onMouseEnter={(e) => {
                                             e.target.style.transform = 'translateY(-2px)';

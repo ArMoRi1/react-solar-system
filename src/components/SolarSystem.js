@@ -21,7 +21,10 @@ class SolarSystem extends Component {
             tooltipPosition: { x: 0, y: 0 },
             showAxes: false, // Додаємо стан для осей
             showOrbits: true, // Додаємо стан для орбіт
-            infoPanelOpen: false // Додаємо стан для керування панеллю
+            infoPanelOpen: false, // Додаємо стан для керування панеллю
+            isMobile: window.innerWidth <= 768, // Додаємо детекцію мобільного
+            leftPanelOpen: false, // Стан лівої панелі для мобільного
+            rightPanelOpen: false // Стан правої панелі для мобільного
         };
 
         this.mountRef = React.createRef();
@@ -52,6 +55,9 @@ class SolarSystem extends Component {
         this.createSolarSystem();
         this.animate();
         this.setupEventListeners();
+
+        // Додаємо слухач для зміни розміру екрану
+        window.addEventListener('resize', this.handleResize);
     }
 
     componentWillUnmount() {
@@ -265,6 +271,31 @@ class SolarSystem extends Component {
 
     handleResize = () => {
         this.threeInit.handleResize();
+
+        // Оновлюємо стан мобільного пристрою
+        const isMobile = window.innerWidth <= 768;
+        if (isMobile !== this.state.isMobile) {
+            this.setState({
+                isMobile,
+                leftPanelOpen: false,
+                rightPanelOpen: false
+            });
+        }
+    };
+
+    // Функції для керування панелями на мобільному
+    handleLeftPanelToggle = () => {
+        this.setState(prevState => ({
+            leftPanelOpen: !prevState.leftPanelOpen,
+            rightPanelOpen: false // Закриваємо праву панель
+        }));
+    };
+
+    handleRightPanelToggle = () => {
+        this.setState(prevState => ({
+            rightPanelOpen: !prevState.rightPanelOpen,
+            leftPanelOpen: false // Закриваємо ліву панель
+        }));
     };
 
     animate = () => {
@@ -424,24 +455,86 @@ class SolarSystem extends Component {
             tooltipPosition,
             showAxes,
             showOrbits,
-            infoPanelOpen
+            infoPanelOpen,
+            isMobile,
+            leftPanelOpen,
+            rightPanelOpen
         } = this.state;
 
         return (
             <div style={{ position: 'relative', width: '100vw', height: '100vh', background: '#000', display: 'flex' }}>
+                {/* Mobile floating buttons */}
+                {isMobile && (
+                    <>
+                        {/* Left panel toggle button */}
+                        <button
+                            onClick={this.handleLeftPanelToggle}
+                            style={{
+                                position: 'fixed',
+                                left: '20px',
+                                top: '20px',
+                                width: '50px',
+                                height: '50px',
+                                borderRadius: '50%',
+                                background: leftPanelOpen ? 'rgba(0,122,255,0.9)' : 'rgba(0,0,0,0.8)',
+                                border: '2px solid rgba(255,255,255,0.3)',
+                                color: 'white',
+                                fontSize: '20px',
+                                zIndex: 1003,
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                transition: 'all 0.3s ease',
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
+                            }}
+                        >
+                            🌌
+                        </button>
+
+                        {/* Right panel toggle button */}
+                        <button
+                            onClick={this.handleRightPanelToggle}
+                            style={{
+                                position: 'fixed',
+                                right: '20px',
+                                top: '20px',
+                                width: '50px',
+                                height: '50px',
+                                borderRadius: '50%',
+                                background: rightPanelOpen ? 'rgba(0,122,255,0.9)' : 'rgba(0,0,0,0.8)',
+                                border: '2px solid rgba(255,255,255,0.3)',
+                                color: 'white',
+                                fontSize: '20px',
+                                zIndex: 1003,
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                transition: 'all 0.3s ease',
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
+                            }}
+                        >
+                            🎛️
+                        </button>
+                    </>
+                )}
+
                 {/* Left Planet Navigation Panel */}
                 <div style={{
                     position: 'fixed',
-                    left: 0,
-                    top: 0,
-                    width: '250px',
+                    left: isMobile ? (leftPanelOpen ? '0' : '-280px') : '0',
+                    top: '0',
+                    width: isMobile ? '280px' : '250px',
                     height: '100vh',
-                    background: 'rgba(0,0,0,0.9)',
+                    background: 'rgba(0,0,0,0.95)',
                     color: 'white',
                     padding: '20px',
                     zIndex: 1000,
                     overflowY: 'auto',
-                    borderRight: '1px solid rgba(255,255,255,0.2)'
+                    borderRight: '1px solid rgba(255,255,255,0.2)',
+                    transition: 'left 0.3s ease',
+                    boxShadow: isMobile ? '4px 0 12px rgba(0,0,0,0.5)' : 'none'
                 }}>
                     <h2 style={{
                         margin: '0 0 20px 0',
@@ -457,17 +550,20 @@ class SolarSystem extends Component {
                         {solarSystemData.planets.map(planet => (
                             <button
                                 key={planet.name}
-                                onClick={() => this.handlePlanetClick(planet.name)}
+                                onClick={() => {
+                                    this.handlePlanetClick(planet.name);
+                                    if (isMobile) this.setState({ leftPanelOpen: false });
+                                }}
                                 style={{
                                     background: selectedPlanet === planet.name
                                         ? 'rgba(255,255,255,0.2)'
                                         : 'rgba(255,255,255,0.1)',
                                     border: '1px solid rgba(255,255,255,0.3)',
                                     color: 'white',
-                                    padding: '12px 15px',
+                                    padding: isMobile ? '16px 15px' : '12px 15px',
                                     cursor: 'pointer',
                                     borderRadius: '8px',
-                                    fontSize: '14px',
+                                    fontSize: isMobile ? '16px' : '14px',
                                     textAlign: 'left',
                                     transition: 'all 0.3s ease',
                                     width: '100%'
@@ -484,7 +580,7 @@ class SolarSystem extends Component {
                                 }}
                             >
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                    <span style={{ fontSize: '14px', width: '20px', textAlign: 'center' }}>
+                                    <span style={{ fontSize: isMobile ? '18px' : '14px', width: '20px', textAlign: 'center' }}>
                                         {planet.name === 'Sun' ? '⚡' :
                                             planet.name === 'Mercury' ? '◐' :
                                                 planet.name === 'Venus' ? '◯' :
@@ -506,17 +602,38 @@ class SolarSystem extends Component {
                 <div
                     ref={this.mountRef}
                     style={{
-                        width: (showInfo && infoPanelOpen) ? 'calc(100vw - 750px)' : 'calc(100vw - 450px)',
+                        width: isMobile
+                            ? '100vw'
+                            : (showInfo && infoPanelOpen)
+                                ? 'calc(100vw - 750px)'
+                                : 'calc(100vw - 450px)',
                         height: '100%',
                         cursor: this.isDragging ? 'grabbing' : 'grab',
-                        marginLeft: '250px',
-                        marginRight: '200px', // Фіксований правий відступ
+                        marginLeft: isMobile ? '0' : '250px',
+                        marginRight: isMobile ? '0' : '200px',
                         transition: 'all 0.3s ease'
                     }}
                 />
 
+                {/* Mobile overlay - закриває панелі при кліку */}
+                {isMobile && (leftPanelOpen || rightPanelOpen) && (
+                    <div
+                        style={{
+                            position: 'fixed',
+                            top: 0,
+                            left: 0,
+                            width: '100vw',
+                            height: '100vh',
+                            background: 'rgba(0,0,0,0.5)',
+                            zIndex: 999,
+                            cursor: 'pointer'
+                        }}
+                        onClick={() => this.setState({ leftPanelOpen: false, rightPanelOpen: false })}
+                    />
+                )}
+
                 {/* Info Panel Toggle Button */}
-                {showInfo && (
+                {showInfo && !isMobile && (
                     <div style={{
                         position: 'fixed',
                         right: infoPanelOpen ? '700px' : '200px', // Позиція кнопки
@@ -558,28 +675,31 @@ class SolarSystem extends Component {
 
                 {/* Planet Info Panel */}
                 <DetailedInfoPanel
-                    showInfo={showInfo && infoPanelOpen}
+                    showInfo={showInfo && (isMobile ? true : infoPanelOpen)}
                     selectedPlanet={selectedPlanet}
                     infoPosition={infoPosition}
+                    isMobile={isMobile}
                 />
 
                 {/* Right Control Panel */}
                 <div style={{
                     position: 'fixed',
-                    right: 0,
-                    top: 0,
-                    width: '200px',
+                    right: isMobile ? (rightPanelOpen ? '0' : '-280px') : '0',
+                    top: '0',
+                    width: isMobile ? '280px' : '200px',
                     height: '100vh',
-                    background: 'rgba(0,0,0,0.9)',
+                    background: 'rgba(0,0,0,0.95)',
                     color: 'white',
                     padding: '20px',
                     zIndex: 1001,
                     overflowY: 'auto',
-                    borderLeft: '1px solid rgba(255,255,255,0.2)'
+                    borderLeft: '1px solid rgba(255,255,255,0.2)',
+                    transition: 'right 0.3s ease',
+                    boxShadow: isMobile ? '-4px 0 12px rgba(0,0,0,0.5)' : 'none'
                 }}>
                     <h3 style={{
                         margin: '0 0 20px 0',
-                        fontSize: '16px',
+                        fontSize: isMobile ? '18px' : '16px',
                         textAlign: 'center',
                         borderBottom: '1px solid rgba(255,255,255,0.3)',
                         paddingBottom: '10px'
@@ -587,19 +707,19 @@ class SolarSystem extends Component {
                         🎛️ Controls
                     </h3>
 
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '25px' : '20px' }}>
                         {/* View Mode Toggle */}
                         <div>
-                            <label style={{ display: 'block', marginBottom: '8px', fontSize: '12px' }}>
+                            <label style={{ display: 'block', marginBottom: '8px', fontSize: isMobile ? '14px' : '12px' }}>
                                 Camera Mode
                             </label>
                             <div
                                 style={{
                                     position: 'relative',
                                     width: '100%',
-                                    height: '35px',
+                                    height: isMobile ? '45px' : '35px',
                                     background: is3DMode ? '#007AFF' : '#333',
-                                    borderRadius: '17.5px',
+                                    borderRadius: isMobile ? '22.5px' : '17.5px',
                                     cursor: 'pointer',
                                     transition: 'background-color 0.3s ease',
                                     border: '1px solid rgba(255,255,255,0.2)',
@@ -615,15 +735,15 @@ class SolarSystem extends Component {
                                         top: '3px',
                                         left: is3DMode ? 'calc(50% + 1px)' : '3px',
                                         width: 'calc(50% - 4px)',
-                                        height: '29px',
+                                        height: isMobile ? '39px' : '29px',
                                         background: '#fff',
-                                        borderRadius: '14.5px',
+                                        borderRadius: isMobile ? '19.5px' : '14.5px',
                                         transition: 'left 0.3s ease',
                                         boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'center',
-                                        fontSize: '12px',
+                                        fontSize: isMobile ? '14px' : '12px',
                                         fontWeight: 'bold',
                                         color: '#333'
                                     }}
@@ -637,7 +757,7 @@ class SolarSystem extends Component {
                                     left: '0',
                                     width: '50%',
                                     textAlign: 'center',
-                                    fontSize: '11px',
+                                    fontSize: isMobile ? '12px' : '11px',
                                     color: !is3DMode ? 'transparent' : 'rgba(255,255,255,0.8)',
                                     fontWeight: '500',
                                     pointerEvents: 'none'
@@ -649,7 +769,7 @@ class SolarSystem extends Component {
                                     right: '0',
                                     width: '50%',
                                     textAlign: 'center',
-                                    fontSize: '11px',
+                                    fontSize: isMobile ? '12px' : '11px',
                                     color: is3DMode ? 'transparent' : 'rgba(255,255,255,0.8)',
                                     fontWeight: '500',
                                     pointerEvents: 'none'
@@ -661,16 +781,16 @@ class SolarSystem extends Component {
 
                         {/* Animation Toggle */}
                         <div>
-                            <label style={{ display: 'block', marginBottom: '8px', fontSize: '12px' }}>
+                            <label style={{ display: 'block', marginBottom: '8px', fontSize: isMobile ? '14px' : '12px' }}>
                                 Animation Control
                             </label>
                             <div
                                 style={{
                                     position: 'relative',
                                     width: '100%',
-                                    height: '35px',
+                                    height: isMobile ? '45px' : '35px',
                                     background: isAnimationRunning ? '#34C759' : '#FF3B30',
-                                    borderRadius: '17.5px',
+                                    borderRadius: isMobile ? '22.5px' : '17.5px',
                                     cursor: 'pointer',
                                     transition: 'background-color 0.3s ease',
                                     border: '1px solid rgba(255,255,255,0.2)',
@@ -686,15 +806,15 @@ class SolarSystem extends Component {
                                         top: '3px',
                                         left: isAnimationRunning ? 'calc(50% + 1px)' : '3px',
                                         width: 'calc(50% - 4px)',
-                                        height: '29px',
+                                        height: isMobile ? '39px' : '29px',
                                         background: '#fff',
-                                        borderRadius: '14.5px',
+                                        borderRadius: isMobile ? '19.5px' : '14.5px',
                                         transition: 'left 0.3s ease',
                                         boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'center',
-                                        fontSize: '12px',
+                                        fontSize: isMobile ? '16px' : '12px',
                                         fontWeight: 'bold',
                                         color: '#333'
                                     }}
@@ -708,7 +828,7 @@ class SolarSystem extends Component {
                                     left: '0',
                                     width: '50%',
                                     textAlign: 'center',
-                                    fontSize: '11px',
+                                    fontSize: isMobile ? '12px' : '11px',
                                     color: !isAnimationRunning ? 'transparent' : 'rgba(255,255,255,0.8)',
                                     fontWeight: '500',
                                     pointerEvents: 'none'
@@ -720,7 +840,7 @@ class SolarSystem extends Component {
                                     right: '0',
                                     width: '50%',
                                     textAlign: 'center',
-                                    fontSize: '11px',
+                                    fontSize: isMobile ? '12px' : '11px',
                                     color: isAnimationRunning ? 'transparent' : 'rgba(255,255,255,0.8)',
                                     fontWeight: '500',
                                     pointerEvents: 'none'
@@ -732,16 +852,16 @@ class SolarSystem extends Component {
 
                         {/* Axes Toggle - Нова кнопка */}
                         <div>
-                            <label style={{ display: 'block', marginBottom: '8px', fontSize: '12px' }}>
+                            <label style={{ display: 'block', marginBottom: '8px', fontSize: isMobile ? '14px' : '12px' }}>
                                 Coordinate Axes
                             </label>
                             <div
                                 style={{
                                     position: 'relative',
                                     width: '100%',
-                                    height: '35px',
+                                    height: isMobile ? '45px' : '35px',
                                     background: showAxes ? '#9C27B0' : '#333',
-                                    borderRadius: '17.5px',
+                                    borderRadius: isMobile ? '22.5px' : '17.5px',
                                     cursor: 'pointer',
                                     transition: 'background-color 0.3s ease',
                                     border: '1px solid rgba(255,255,255,0.2)',
@@ -757,15 +877,15 @@ class SolarSystem extends Component {
                                         top: '3px',
                                         left: showAxes ? 'calc(50% + 1px)' : '3px',
                                         width: 'calc(50% - 4px)',
-                                        height: '29px',
+                                        height: isMobile ? '39px' : '29px',
                                         background: '#fff',
-                                        borderRadius: '14.5px',
+                                        borderRadius: isMobile ? '19.5px' : '14.5px',
                                         transition: 'left 0.3s ease',
                                         boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'center',
-                                        fontSize: '12px',
+                                        fontSize: isMobile ? '14px' : '12px',
                                         fontWeight: 'bold',
                                         color: '#333'
                                     }}
@@ -779,7 +899,7 @@ class SolarSystem extends Component {
                                     left: '0',
                                     width: '50%',
                                     textAlign: 'center',
-                                    fontSize: '11px',
+                                    fontSize: isMobile ? '12px' : '11px',
                                     color: !showAxes ? 'transparent' : 'rgba(255,255,255,0.8)',
                                     fontWeight: '500',
                                     pointerEvents: 'none'
@@ -791,7 +911,7 @@ class SolarSystem extends Component {
                                     right: '0',
                                     width: '50%',
                                     textAlign: 'center',
-                                    fontSize: '11px',
+                                    fontSize: isMobile ? '12px' : '11px',
                                     color: showAxes ? 'transparent' : 'rgba(255,255,255,0.8)',
                                     fontWeight: '500',
                                     pointerEvents: 'none'
@@ -803,16 +923,16 @@ class SolarSystem extends Component {
 
                         {/* Orbits Toggle - Нова кнопка для орбіт */}
                         <div>
-                            <label style={{ display: 'block', marginBottom: '8px', fontSize: '12px' }}>
+                            <label style={{ display: 'block', marginBottom: '8px', fontSize: isMobile ? '14px' : '12px' }}>
                                 Planet Orbits
                             </label>
                             <div
                                 style={{
                                     position: 'relative',
                                     width: '100%',
-                                    height: '35px',
+                                    height: isMobile ? '45px' : '35px',
                                     background: showOrbits ? '#00BCD4' : '#333',
-                                    borderRadius: '17.5px',
+                                    borderRadius: isMobile ? '22.5px' : '17.5px',
                                     cursor: 'pointer',
                                     transition: 'background-color 0.3s ease',
                                     border: '1px solid rgba(255,255,255,0.2)',
@@ -828,15 +948,15 @@ class SolarSystem extends Component {
                                         top: '3px',
                                         left: showOrbits ? 'calc(50% + 1px)' : '3px',
                                         width: 'calc(50% - 4px)',
-                                        height: '29px',
+                                        height: isMobile ? '39px' : '29px',
                                         background: '#fff',
-                                        borderRadius: '14.5px',
+                                        borderRadius: isMobile ? '19.5px' : '14.5px',
                                         transition: 'left 0.3s ease',
                                         boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'center',
-                                        fontSize: '12px',
+                                        fontSize: isMobile ? '16px' : '12px',
                                         fontWeight: 'bold',
                                         color: '#333'
                                     }}
@@ -850,7 +970,7 @@ class SolarSystem extends Component {
                                     left: '0',
                                     width: '50%',
                                     textAlign: 'center',
-                                    fontSize: '11px',
+                                    fontSize: isMobile ? '12px' : '11px',
                                     color: !showOrbits ? 'transparent' : 'rgba(255,255,255,0.8)',
                                     fontWeight: '500',
                                     pointerEvents: 'none'
@@ -862,7 +982,7 @@ class SolarSystem extends Component {
                                     right: '0',
                                     width: '50%',
                                     textAlign: 'center',
-                                    fontSize: '11px',
+                                    fontSize: isMobile ? '12px' : '11px',
                                     color: showOrbits ? 'transparent' : 'rgba(255,255,255,0.8)',
                                     fontWeight: '500',
                                     pointerEvents: 'none'
@@ -874,7 +994,7 @@ class SolarSystem extends Component {
 
                         {/* Speed Control */}
                         <div>
-                            <label style={{ display: 'block', marginBottom: '8px', fontSize: '12px' }}>
+                            <label style={{ display: 'block', marginBottom: '8px', fontSize: isMobile ? '14px' : '12px' }}>
                                 Speed: {animationSpeed}x
                             </label>
                             <input
@@ -886,9 +1006,9 @@ class SolarSystem extends Component {
                                 onChange={this.handleSpeedChange}
                                 style={{
                                     width: '100%',
+                                    height: isMobile ? '8px' : '4px',
                                     appearance: 'none',
-                                    height: '4px',
-                                    borderRadius: '2px',
+                                    borderRadius: isMobile ? '4px' : '2px',
                                     background: 'rgba(255,255,255,0.3)',
                                     outline: 'none'
                                 }}
@@ -897,20 +1017,23 @@ class SolarSystem extends Component {
 
                         {/* Reset Camera */}
                         <div>
-                            <label style={{ display: 'block', marginBottom: '8px', fontSize: '12px' }}>
+                            <label style={{ display: 'block', marginBottom: '8px', fontSize: isMobile ? '14px' : '12px' }}>
                                 Camera Reset
                             </label>
                             <button
-                                onClick={this.handleResetCamera}
+                                onClick={() => {
+                                    this.handleResetCamera();
+                                    if (isMobile) this.setState({ rightPanelOpen: false });
+                                }}
                                 style={{
                                     background: 'rgba(255,165,0,0.2)',
                                     border: '1px solid rgba(255,165,0,0.5)',
                                     color: '#FFA500',
-                                    padding: '10px',
+                                    padding: isMobile ? '15px 10px' : '10px',
                                     cursor: 'pointer',
                                     borderRadius: '8px',
                                     width: '100%',
-                                    fontSize: '12px',
+                                    fontSize: isMobile ? '14px' : '12px',
                                     fontWeight: '500',
                                     transition: 'all 0.3s ease',
                                     display: 'flex',
@@ -927,7 +1050,7 @@ class SolarSystem extends Component {
                                     e.target.style.borderColor = 'rgba(255,165,0,0.5)';
                                 }}
                             >
-                                <span style={{ fontSize: '14px' }}>⟲</span>
+                                <span style={{ fontSize: isMobile ? '16px' : '14px' }}>⟲</span>
                                 Reset View
                             </button>
                         </div>
