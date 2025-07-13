@@ -1,13 +1,13 @@
 {
   "files": {
     "main.css": "/react-solar-system/static/css/main.a8e2c0a2.css",
-    "main.js": "/react-solar-system/static/js/main.3fc0c2af.js",
+    "main.js": "/react-solar-system/static/js/main.604581c6.js",
     "index.html": "/react-solar-system/index.html",
     "main.a8e2c0a2.css.map": "/react-solar-system/static/css/main.a8e2c0a2.css.map",
-    "main.3fc0c2af.js.map": "/react-solar-system/static/js/main.3fc0c2af.js.map"
+    "main.604581c6.js.map": "/react-solar-system/static/js/main.604581c6.js.map"
   },
   "entrypoints": [
     "static/css/main.a8e2c0a2.css",
-    "static/js/main.3fc0c2af.js"
+    "static/js/main.604581c6.js"
   ]
 }
